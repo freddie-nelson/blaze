@@ -1,14 +1,13 @@
 # Blaze
 
-A voxel raycaster engine written in C and SDL
+A basic voxel engine in TypeScript and WebGL
 
 ## Goals
 
-- Cross platform across Linux, Mac and Windows
+- Cross platform across desktop and mobile
 - Render large voxel worlds efficiently
 - Good selection of UI components
-- Simple event driven API
-- Provide easily expandable tooling
+- Simple API
 
 <!-- ## Features
 
