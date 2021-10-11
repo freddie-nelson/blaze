@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "typeRoots": ["@types", "./node_modules/@types"],
+    "module": "es6",
     "noImplicitAny": true,
-    "outDir": "./build",
+    "outDir": "dist",
     "sourceMap": true,
-    "rootDir": "src",
+    "rootDir": "./",
     "target": "es6",
-    "moduleResolution": "node",
-    "esModuleInterop": true
-  }
+    "declaration": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*", "dev/**/*"],
+  "exclude": ["node_modules"]
 }

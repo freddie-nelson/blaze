@@ -2,21 +2,17 @@ const path = require("path");
 
 module.exports = {
   target: "web",
-  mode: "production",
+  mode: "development",
   entry: {
-    blaze: "./src/blaze.ts",
+    main: "./dev/main.ts",
   },
   output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "blaze.js",
-    library: "Blaze",
-    libraryTarget: "umd",
-    globalObject: "this",
-    umdNamedDefine: true,
+    path: __dirname,
+    filename: "main.js",
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
-    modules: ["node_modules"],
+    modules: ["../node_modules"],
   },
   module: {
     rules: [
