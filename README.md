@@ -8,6 +8,8 @@ A basic voxel engine in TypeScript and WebGL
 - Render large voxel worlds efficiently
 - Good selection of UI components
 - Simple, C like API
+- Mostly follow Data Oriented Design principles
+- Have Mostly pure functions
 
 # Overview
 
