@@ -3,7 +3,7 @@ import { mat4, vec3 } from "gl-matrix";
 export default class Camera {
   private position = vec3.create();
   private rotation = vec3.create();
-  private viewMatrix = mat4.create();
+  // private viewMatrix = mat4.create();
 
   private fov: number;
   private near: number;
@@ -11,11 +11,16 @@ export default class Camera {
   private aspect: number;
   private projectionMatrix = mat4.create();
 
-  constructor(gl: WebGL2RenderingContext, fov: number = 60, near: number = 0, far: number = 1000) {
+  constructor(gl: WebGL2RenderingContext, fov: number = Math.PI / 3, near: number = 0, far: number = 1000) {
     this.setProjectionMatrix(gl, fov, near, far);
   }
 
-  setProjectionMatrix(gl: WebGL2RenderingContext, fov: number = 60, near: number = 0.1, far: number = 1000) {
+  setProjectionMatrix(
+    gl: WebGL2RenderingContext,
+    fov: number = Math.PI / 3,
+    near: number = 0.1,
+    far: number = 1000
+  ) {
     this.fov = fov;
     this.near = near;
     this.far = far;
@@ -29,31 +34,51 @@ export default class Camera {
   }
 
   moveForward(dist: number) {
-    this.position[2] += dist;
-    mat4.translate(this.viewMatrix, this.viewMatrix, [0, 0, dist]);
+    const rotation = mat4.create();
+    mat4.fromXRotation(rotation, this.rotation[0]);
+    mat4.rotateY(rotation, rotation, this.rotation[1]);
+
+    const translation = vec3.fromValues(0, 0, -dist);
+    vec3.transformMat4(translation, translation, rotation);
+
+    vec3.add(this.position, this.position, translation);
+    // mat4.translate(this.viewMatrix, this.viewMatrix, translation);
   }
 
   moveRight(dist: number) {
-    this.position[0] += dist;
-    mat4.translate(this.viewMatrix, this.viewMatrix, [dist, 0, 0]);
+    const rotation = mat4.create();
+    mat4.fromZRotation(rotation, this.rotation[2]);
+    mat4.rotateY(rotation, rotation, this.rotation[1]);
+
+    const translation = vec3.fromValues(dist, 0, 0);
+    vec3.transformMat4(translation, translation, rotation);
+
+    vec3.add(this.position, this.position, translation);
+    // mat4.translate(this.viewMatrix, this.viewMatrix, translation);
   }
 
   rotateX(angle: number) {
     this.rotation[0] += angle;
-    mat4.rotateX(this.viewMatrix, this.viewMatrix, angle);
+    // mat4.rotateX(this.viewMatrix, this.viewMatrix, angle);
   }
 
   rotateY(angle: number) {
     this.rotation[1] += angle;
-    mat4.rotateY(this.viewMatrix, this.viewMatrix, angle);
+    // mat4.rotateY(this.viewMatrix, this.viewMatrix, angle);
   }
 
   rotateZ(angle: number) {
     this.rotation[2] += angle;
-    mat4.rotateZ(this.viewMatrix, this.viewMatrix, angle);
+    // mat4.rotateZ(this.viewMatrix, this.viewMatrix, angle);
   }
 
   getViewMatrix() {
-    return this.viewMatrix;
+    const vMatrix = mat4.create();
+    mat4.translate(vMatrix, vMatrix, this.position);
+    mat4.rotateX(vMatrix, vMatrix, this.rotation[0]);
+    mat4.rotateY(vMatrix, vMatrix, this.rotation[1]);
+    mat4.rotateZ(vMatrix, vMatrix, this.rotation[2]);
+
+    return mat4.invert(vMatrix, vMatrix);
   }
 }
