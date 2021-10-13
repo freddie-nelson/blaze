@@ -1,19 +1,16 @@
 import { BLZ_CreateRenderer } from "./renderer";
 
-interface Blaze {
+export default class Blaze {
   gl: WebGL2RenderingContext;
-}
 
-/**
- * Initializes the engine and creates the renderer
- *
- * @param canvas
- * @returns Blaze engine state
- */
-export function BLZ_Init(canvas: HTMLCanvasElement): Blaze {
-  const gl = BLZ_CreateRenderer(canvas);
-
-  return {
-    gl,
-  };
+  /**
+   * Initializes the engine and creates the renderer
+   *
+   * @param canvas
+   * @returns instance of blaze engine
+   */
+  constructor(canvas: HTMLCanvasElement) {
+    const gl = BLZ_CreateRenderer(canvas);
+    this.gl = gl;
+  }
 }
