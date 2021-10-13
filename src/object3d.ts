@@ -6,8 +6,20 @@ export default class Object3D {
 
   constructor() {}
 
-  setPosition(x: number, y: number, z: number) {
-    vec3.set(this.position, x, y, z);
+  setPosition(pos: vec3) {
+    this.position = pos;
+  }
+
+  setPositionX(pos: number) {
+    this.position[0] = pos;
+  }
+
+  setPositionY(pos: number) {
+    this.position[1] = pos;
+  }
+
+  setPositionZ(pos: number) {
+    this.position[2] = pos;
   }
 
   getPosition() {
@@ -36,8 +48,20 @@ export default class Object3D {
     vec3.add(this.position, this.position, translation);
   }
 
-  setRotation(x: number, y: number, z: number) {
-    vec3.set(this.rotation, x, y, z);
+  setRotation(rot: vec3) {
+    this.rotation = rot;
+  }
+
+  setRotationX(rad: number) {
+    this.rotation[0] = rad;
+  }
+
+  setRotationY(rad: number) {
+    this.rotation[1] = rad;
+  }
+
+  setRotationZ(rad: number) {
+    this.rotation[2] = rad;
   }
 
   getRotation() {

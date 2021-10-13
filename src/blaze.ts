@@ -1,6 +1,5 @@
 import { BLZ_CreateRenderer } from "./renderer";
 import Player from "./player";
-import Camera from "./camera";
 import { clear } from "./utils/gl";
 
 export default class Blaze {
@@ -44,6 +43,6 @@ export default class Blaze {
   }
 
   initPlayer() {
-    this.player = new Player(new Camera(this.gl));
+    this.player = new Player(this.gl);
   }
 }

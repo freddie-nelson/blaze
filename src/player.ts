@@ -2,6 +2,7 @@ import { vec3 } from "gl-matrix";
 import Camera from "./camera";
 import { isKeyPressed } from "./keyboard";
 import Object3D from "./object3d";
+import PointerLockControls from "./pointerLockControls";
 
 export default class Player extends Object3D {
   height = 1.8;
@@ -19,15 +20,23 @@ export default class Player extends Object3D {
 
   camera: Camera;
   cameraPos = vec3.fromValues(this.width / 2, this.height / 4, this.width / 2);
+  direction = vec3.fromValues(0, 0, -1);
 
-  constructor(camera: Camera) {
+  plControls: PointerLockControls;
+
+  constructor(gl: WebGL2RenderingContext) {
     super();
 
-    this.camera = camera;
-    camera.setPosition(this.cameraPos[0], this.cameraPos[1], this.cameraPos[2]);
+    this.camera = new Camera(gl);
+    this.camera.setPosition(this.cameraPos);
+
+    this.plControls = new PointerLockControls(<HTMLElement>gl.canvas);
   }
 
   update(delta: number) {
+    // update rotation
+    this.plControls.update(this);
+
     // player movement
     const hasMoved = this.calcNewVelocity(delta);
     this.applyFriction(delta, hasMoved);
@@ -91,13 +100,11 @@ export default class Player extends Object3D {
   }
 
   private calcNewPosition(delta: number) {
-    const rotation = this.getRotation();
-    this.camera.setRotation(rotation[0], rotation[1], rotation[2]);
-
     this.moveForward(this.velocity[2] * delta);
     this.moveRight(this.velocity[0] * delta);
 
-    this.camera.moveForward(this.velocity[2] * delta);
-    this.camera.moveRight(this.velocity[0] * delta);
+    const position = vec3.create();
+    vec3.add(position, this.getPosition(), this.cameraPos);
+    this.camera.setPosition(position);
   }
 }

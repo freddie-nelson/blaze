@@ -8,6 +8,9 @@ export default class Camera extends Object3D {
   private aspect: number;
   private projectionMatrix = mat4.create();
 
+  up = vec3.fromValues(0, 1, 0);
+  direction = vec3.fromValues(0, 0, -1);
+
   constructor(gl: WebGL2RenderingContext, fov: number = Math.PI / 3, near: number = 0, far: number = 1000) {
     super();
 
@@ -36,10 +39,9 @@ export default class Camera extends Object3D {
     const vMatrix = mat4.create();
     mat4.translate(vMatrix, vMatrix, this.getPosition());
 
-    const rotation = this.getRotation();
-    mat4.rotateX(vMatrix, vMatrix, rotation[0]);
-    mat4.rotateY(vMatrix, vMatrix, rotation[1]);
-    mat4.rotateZ(vMatrix, vMatrix, rotation[2]);
+    const target = vec3.create();
+    vec3.add(target, this.getPosition(), this.direction);
+    mat4.targetTo(vMatrix, this.getPosition(), target, this.up);
 
     return mat4.invert(vMatrix, vMatrix);
   }
