@@ -30,12 +30,12 @@ export default class Player extends Object3D {
     this.camera = new Camera(gl);
     this.camera.setPosition(this.cameraPos);
 
-    this.plControls = new PointerLockControls(<HTMLElement>gl.canvas);
+    this.plControls = new PointerLockControls(<HTMLElement>gl.canvas, this.camera, this);
   }
 
   update(delta: number) {
     // update rotation
-    this.plControls.update(this);
+    this.plControls.update();
 
     // player movement
     const hasMoved = this.calcNewVelocity(delta);
@@ -53,29 +53,38 @@ export default class Player extends Object3D {
       b: false,
     };
 
+    let acceleration = this.acceleration;
+    let maxVelocity = vec3.clone(this.maxVelocity);
+
+    // sprint
+    if (isKeyPressed("ShiftLeft")) {
+      acceleration *= 1.2;
+      vec3.multiply(maxVelocity, maxVelocity, vec3.fromValues(1.5, 1, 1.5));
+    }
+
     if (isKeyPressed("KeyW")) {
       hasMoved.f = true;
-      this.velocity[2] += this.acceleration * delta;
-      if (Math.abs(this.velocity[2]) > this.maxVelocity[2])
-        this.velocity[2] = this.maxVelocity[2] * Math.sign(this.velocity[2]);
+      this.velocity[2] += acceleration * delta;
+      if (Math.abs(this.velocity[2]) > maxVelocity[2])
+        this.velocity[2] = maxVelocity[2] * Math.sign(this.velocity[2]);
     }
     if (isKeyPressed("KeyS")) {
       hasMoved.b = true;
-      this.velocity[2] -= this.acceleration * delta;
-      if (Math.abs(this.velocity[2]) > this.maxVelocity[2])
-        this.velocity[2] = this.maxVelocity[2] * Math.sign(this.velocity[2]);
+      this.velocity[2] -= acceleration * delta;
+      if (Math.abs(this.velocity[2]) > maxVelocity[2])
+        this.velocity[2] = maxVelocity[2] * Math.sign(this.velocity[2]);
     }
     if (isKeyPressed("KeyA")) {
       hasMoved.l = true;
-      this.velocity[0] -= this.acceleration * delta;
-      if (Math.abs(this.velocity[0]) > this.maxVelocity[0])
-        this.velocity[0] = this.maxVelocity[0] * Math.sign(this.velocity[0]);
+      this.velocity[0] -= acceleration * delta;
+      if (Math.abs(this.velocity[0]) > maxVelocity[0])
+        this.velocity[0] = maxVelocity[0] * Math.sign(this.velocity[0]);
     }
     if (isKeyPressed("KeyD")) {
       hasMoved.r = true;
-      this.velocity[0] += this.acceleration * delta;
-      if (Math.abs(this.velocity[0]) > this.maxVelocity[0])
-        this.velocity[0] = this.maxVelocity[0] * Math.sign(this.velocity[0]);
+      this.velocity[0] += acceleration * delta;
+      if (Math.abs(this.velocity[0]) > maxVelocity[0])
+        this.velocity[0] = maxVelocity[0] * Math.sign(this.velocity[0]);
     }
 
     return hasMoved;
