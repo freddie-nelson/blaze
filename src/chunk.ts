@@ -3,18 +3,25 @@ interface ChunkOptions {
   size: number;
 }
 
-export function BLZ_InitChunk(opts: ChunkOptions) {
+/**
+ * Creates an empty **flat** Uint8Array of length **opts.height** * **opts.size** * **opts.size**
+ * to represent the chunk's voxel ids
+ *
+ * @param opts
+ * @returns
+ */
+export function initChunk(opts: ChunkOptions) {
   return new Uint8Array(opts.height * opts.size * opts.size);
 }
 
 type Generator = (chunk: Uint8Array, opts: ChunkOptions) => void;
 const generators: Generator[] = [];
 
-export function BLZ_AddChunkGenerator(generator: Generator) {
+export function addChunkGenerator(generator: Generator) {
   generators.push(generator);
 }
 
-export function BLZ_RemoveChunkGenerator(generator: Generator) {
+export function removeChunkGenerator(generator: Generator) {
   const i = generators.findIndex((g) => g === generator);
   if (i === -1) {
     generators.splice(i, 1);
@@ -24,12 +31,12 @@ export function BLZ_RemoveChunkGenerator(generator: Generator) {
   return false;
 }
 
-export function BLZ_ClearGenerators() {
+export function clearChunkGenerators() {
   generators.length = 0;
 }
 
-export function BLZ_GenerateChunk(opts: ChunkOptions) {
-  const chunk = BLZ_InitChunk(opts);
+export function generateChunk(opts: ChunkOptions) {
+  const chunk = initChunk(opts);
   generators.forEach((g) => g(chunk, opts));
 
   return chunk;

@@ -12,11 +12,11 @@ import fsCube from "./shaders/cube/fragment.glsl";
  * @param canvas
  * @returns Webgl 2 rendering context for **canvas**
  */
-export function BLZ_CreateRenderer(canvas: HTMLCanvasElement) {
+export function createRenderer(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext("webgl2");
   if (!gl) throw new Error("Your browser does not support WebGL 2.0");
 
-  BLZ_ResizeRendererToWindow(gl);
+  resizeRendererToWindow(gl);
   clear(gl);
 
   return gl;
@@ -27,13 +27,13 @@ export function BLZ_CreateRenderer(canvas: HTMLCanvasElement) {
  *
  * @param gl
  */
-export function BLZ_ResizeRendererToWindow(gl: WebGL2RenderingContext) {
+export function resizeRendererToWindow(gl: WebGL2RenderingContext) {
   gl.canvas.width = window.innerWidth;
   gl.canvas.height = window.innerHeight;
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 }
 
-export function BLZ_RenderCube(gl: WebGL2RenderingContext, projectionMatrix: mat4, viewMatrix: mat4) {
+export function renderCube(gl: WebGL2RenderingContext, projectionMatrix: mat4, viewMatrix: mat4) {
   const shaderProgram = createShaderProgram(gl, vsCube, fsCube);
   const programInfo = {
     program: shaderProgram,

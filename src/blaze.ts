@@ -1,4 +1,4 @@
-import { BLZ_CreateRenderer } from "./renderer";
+import { createRenderer } from "./renderer";
 import Player from "./player";
 import { clear } from "./utils/gl";
 
@@ -17,7 +17,7 @@ export default class Blaze {
    * @returns instance of blaze engine
    */
   constructor(canvas: HTMLCanvasElement) {
-    const gl = BLZ_CreateRenderer(canvas);
+    const gl = createRenderer(canvas);
     this.gl = gl;
   }
 
