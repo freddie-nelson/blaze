@@ -38,7 +38,7 @@ export default class GeometryGenerator {
     for (let y = 0; y < this.chunkHeight; y++) {
       for (let x = 0; x < this.chunkSize; x++) {
         for (let z = 0; z < this.chunkSize; z++) {
-          const id = chunk[x + this.chunkSize * (y + this.chunkHeight * z)];
+          const id = chunk[from3Dto1D(x, y, z, this.chunkSize, this.chunkHeight)];
           const { vertices: voxVertices, indices: voxIndices } = this.generateVoxelGeometry(
             id,
             x,

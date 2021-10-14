@@ -50,4 +50,8 @@ export default class Camera extends Object3D {
 
     return mat4.invert(vMatrix, vMatrix);
   }
+
+  getProjectionViewMatrix() {
+    return mat4.multiply(mat4.create(), this.projectionMatrix, this.getViewMatrix());
+  }
 }

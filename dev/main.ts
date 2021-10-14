@@ -6,8 +6,10 @@ blz.initPlayer();
 blz.initChunkController({
   gl: blz.gl,
   player: blz.player,
-  renderDist: 16,
-  queueLength: 1,
+  worldSize: 1024,
+  renderDist: 6,
+  maxChunksPerTick: 1,
+  bedrock: -255,
 });
 
 blz.update();

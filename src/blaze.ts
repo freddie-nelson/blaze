@@ -1,7 +1,7 @@
 import { createRenderer } from "./renderer";
 import Player from "./player";
 import { clear } from "./utils/gl";
-import ChunkController, { RenderOptions } from "./chunk/controller";
+import ChunkController, { ChunkControllerOptions } from "./chunk/controller";
 
 export default class Blaze {
   gl: WebGL2RenderingContext;
@@ -51,7 +51,7 @@ export default class Blaze {
     this.player = new Player(this.gl);
   }
 
-  initChunkController(rOpts: RenderOptions) {
-    this.chunkController = new ChunkController(rOpts);
+  initChunkController(opts: ChunkControllerOptions) {
+    this.chunkController = new ChunkController(opts);
   }
 }

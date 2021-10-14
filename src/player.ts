@@ -27,6 +27,8 @@ export default class Player extends Object3D {
   constructor(gl: WebGL2RenderingContext) {
     super();
 
+    this.setPositionY(this.height / 2);
+
     this.camera = new Camera(gl);
     this.camera.setPosition(this.cameraPos);
 

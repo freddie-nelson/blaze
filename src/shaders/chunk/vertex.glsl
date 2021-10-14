@@ -3,8 +3,7 @@
 in float aVertex;
 
 uniform mat4 uModelMatrix;
-uniform mat4 uViewMatrix;
-uniform mat4 uProjectionMatrix;
+uniform mat4 uProjectionViewMatrix;
 
 vec2 texCoords[4] = vec2[4](
   vec2(0.0f, 0.0f),
@@ -23,5 +22,5 @@ void main() {
 
   normal = vec3(float((vertexData & 0x1C00u) >> 10u) / 5.0f);
 
-  gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(x, y, z, 1.0);
+  gl_Position = uProjectionViewMatrix * uModelMatrix * vec4(x, y, z, 1.0);
 }
