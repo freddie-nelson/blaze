@@ -2,9 +2,11 @@ import { createRenderer } from "./renderer";
 import Player from "./player";
 import { clear } from "./utils/gl";
 import ChunkController, { ChunkControllerOptions } from "./chunk/controller";
+import Debug from "./debug";
 
 export default class Blaze {
   gl: WebGL2RenderingContext;
+  private debug: Debug;
 
   player: Player;
   chunkController: ChunkController;
@@ -34,6 +36,8 @@ export default class Blaze {
     if (this.chunkController) this.chunkController.update();
 
     this.updateHooks.forEach((h) => h(delta));
+
+    if (this.debug) this.debug.update(delta);
   }
 
   addUpdateHook(hook: (delta?: number) => void) {
@@ -53,5 +57,13 @@ export default class Blaze {
 
   initChunkController(opts: ChunkControllerOptions) {
     this.chunkController = new ChunkController(opts);
+  }
+
+  toggleDebug() {
+    if (!this.debug) this.debug = new Debug(this);
+    else {
+      this.debug.dispose();
+      this.debug = undefined;
+    }
   }
 }

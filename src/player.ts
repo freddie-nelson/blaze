@@ -19,7 +19,7 @@ export default class Player extends Object3D {
   maxVelocity = vec3.fromValues(5, 20, 5);
 
   camera: Camera;
-  cameraPos = vec3.fromValues(this.width / 2, this.height / 4, this.width / 2);
+  cameraPos = vec3.fromValues(this.width / 2, this.height / 3, this.width / 2);
   direction = vec3.fromValues(0, 0, -1);
 
   plControls: PointerLockControls;

@@ -13,7 +13,7 @@ export default class Camera extends Object3D {
 
   constructor(
     gl: WebGL2RenderingContext,
-    fov: number = Math.PI / 3,
+    fov: number = (70 * Math.PI) / 180,
     near: number = 0.01,
     far: number = 1000
   ) {
@@ -24,7 +24,7 @@ export default class Camera extends Object3D {
 
   setProjectionMatrix(
     gl: WebGL2RenderingContext,
-    fov: number = Math.PI / 3,
+    fov: number = (70 * Math.PI) / 180,
     near: number = 0.01,
     far: number = 1000
   ) {
