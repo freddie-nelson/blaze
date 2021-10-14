@@ -51,9 +51,52 @@ export default class ChunkGenerator {
 
   generateChunk(pos: { x: number; y: number }) {
     const chunk = this.emptyChunk();
-    this.generators.forEach((g) => g(chunk, pos, this.opts));
+    // if (Math.random() < 0.2) chunk.fill(0);
+    // chunk[from3Dto1D(0, 0, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 1, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(1, 0, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 0, 1, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 0, 2, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(2, 0, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(1, 0, 1, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 1, 1, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(1, 1, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 2, 0, this.size, this.height)] = 1;
 
-    // chunk.set([1], from3Dto1D(0, 0, 0, this.size, this.height));
+    // chunk[from3Dto1D(7, 0, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 1, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(6, 0, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 0, 1, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 0, 2, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(5, 0, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(6, 0, 1, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 1, 1, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(6, 1, 0, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 2, 0, this.size, this.height)] = 1;
+
+    // chunk[from3Dto1D(7, 0, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 1, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(6, 0, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 0, 6, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 0, 5, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(5, 0, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(6, 0, 6, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 1, 6, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(6, 1, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(7, 2, 7, this.size, this.height)] = 1;
+
+    // chunk[from3Dto1D(0, 0, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 1, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(1, 0, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 0, 6, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 0, 5, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(2, 0, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(1, 0, 6, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 1, 6, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(1, 1, 7, this.size, this.height)] = 1;
+    // chunk[from3Dto1D(0, 2, 7, this.size, this.height)] = 1;
+
+    this.generators.forEach((g) => g(chunk, pos, this.opts));
 
     return chunk;
   }

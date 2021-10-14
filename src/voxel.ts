@@ -60,7 +60,7 @@ export const faces: { [index: string]: Face } = {
       { pos: [1, 1, 1], uv: [0, 1] },
     ],
   },
-  back: {
+  front: {
     uvCol: 1,
     normal: 0.6,
     corners: [
@@ -70,7 +70,7 @@ export const faces: { [index: string]: Face } = {
       { pos: [1, 1, 0], uv: [0, 1] },
     ],
   },
-  front: {
+  back: {
     uvCol: 1,
     normal: 0.6,
     corners: [

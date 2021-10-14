@@ -8,8 +8,8 @@ blz.initChunkController({
   player: blz.player,
   worldSize: 1024,
   renderDist: 6,
-  maxChunksPerTick: 2,
-  bedrock: 0,
+  maxChunksPerTick: 3,
+  bedrock: -127,
 });
 
 blz.toggleDebug();

@@ -7,6 +7,7 @@ import GeometryGenerator from "./geometry";
 import vsChunk from "../shaders/chunk/vertex.glsl";
 import fsChunk from "../shaders/chunk/fragment.glsl";
 import { mat4, vec3 } from "gl-matrix";
+import { Neighbours } from "../voxel";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
@@ -30,14 +31,16 @@ export default class ChunkController {
 
   player: Player;
 
-  height = 255;
+  height = 127;
   size = 8;
   bedrock: number;
 
   worldSize: number;
   renderDist: number;
+  generationDist: number;
   chunkOffset: number;
-  chunkRenderOffset: number;
+  renderOffset: number;
+  generationOffset: number;
 
   gl: WebGL2RenderingContext;
   shader: WebGLProgram;
@@ -48,18 +51,23 @@ export default class ChunkController {
 
   chunks: { [index: string]: Uint8Array } = {};
   geometry: { [index: string]: { indices: Uint32Array; vertices: Float32Array } } = {};
+  // buffers: { [index: string]: { indices: WebGLBuffer; vertices: WebGLBuffer } } = {};
   renderQueue: string[] = [];
 
   constructor(opts: ChunkControllerOptions) {
+    if (opts.renderDist < 4) throw new Error("Render distance must be >= 4");
+
     this.gl = opts.gl;
     this.player = opts.player;
+    this.generationDist = opts.renderDist + 2;
     this.renderDist = opts.renderDist;
     this.maxChunksPerTick = opts.maxChunksPerTick;
     this.worldSize = opts.worldSize;
     this.bedrock = opts.bedrock;
 
     this.chunkOffset = Math.floor(this.worldSize / 2);
-    this.chunkRenderOffset = Math.floor(this.renderDist / 2);
+    this.renderOffset = Math.floor(this.renderDist / 2);
+    this.generationOffset = Math.floor(this.generationDist / 2);
 
     this.chunkGenerator = new ChunkGenerator({ height: this.height, size: this.size });
     this.geometryGenerator = new GeometryGenerator({
@@ -90,13 +98,19 @@ export default class ChunkController {
   update() {
     const center = this.getChunk(this.player.getPosition());
     const renderLimits = {
-      lowerX: center.x - this.chunkRenderOffset,
+      lowerX: center.x - this.renderOffset,
       iterationsX: this.renderDist,
-      lowerY: center.y - this.chunkRenderOffset,
+      lowerY: center.y - this.renderOffset,
       iterationsY: this.renderDist,
     };
+    const generationLimits = {
+      lowerX: center.x - this.generationOffset,
+      iterationsX: this.generationDist,
+      lowerY: center.y - this.generationOffset,
+      iterationsY: this.generationDist,
+    };
 
-    this.queueChunks(renderLimits);
+    this.queueChunks(generationLimits);
 
     const generated = this.generateChunks();
     this.generateGeometry(generated);
@@ -117,6 +131,7 @@ export default class ChunkController {
         pos.y >= limits.lowerY + limits.iterationsY
       ) {
         delete this.geometry[this.renderQueue[i]];
+        // delete this.buffers[this.renderQueue[i]];
         this.renderQueue.splice(i, 1);
       }
     }
@@ -155,9 +170,18 @@ export default class ChunkController {
   private generateGeometry(chunks: string[]) {
     for (const k of chunks) {
       if (!this.geometry[k]) {
-        this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
-          this.geometryGenerator.generateChunkGeometry(this.chunks[k])
-        );
+        // console.log(k);
+        const pos = this.chunkPos(k);
+        const neighbours = this.getChunkNeighbours(pos);
+
+        if (neighbours.left && neighbours.right && neighbours.front && neighbours.back) {
+          this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
+            this.geometryGenerator.generateChunkGeometry(this.chunks[k], neighbours)
+          );
+        } else {
+          this.queue.push(pos);
+          continue;
+        }
       }
 
       this.renderQueue.push(k);
@@ -169,9 +193,14 @@ export default class ChunkController {
       const geo = this.geometry[k];
       const gl = this.gl;
 
+      // buffer data
       const verticesBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, geo.vertices, gl.STATIC_DRAW);
+
+      const indexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geo.indices, gl.STATIC_DRAW);
 
       // bind vertex buffer to shader
       const numComponents = 1;
@@ -189,10 +218,6 @@ export default class ChunkController {
         offset
       );
       gl.enableVertexAttribArray(this.shaderProgramInfo.attribLocations.vertex);
-
-      const indexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geo.indices, gl.STATIC_DRAW);
 
       gl.useProgram(this.shaderProgramInfo.program);
 
@@ -213,9 +238,23 @@ export default class ChunkController {
       gl.uniformMatrix4fv(this.shaderProgramInfo.uniformLocations.modelMatrix, false, modelMatrix);
 
       gl.drawElements(gl.TRIANGLES, geo.indices.length, gl.UNSIGNED_INT, 0);
-
-      // gl.drawArrays(gl.TRIANGLES, 0, geo.vertices.length);
     }
+  }
+
+  getChunkNeighbours({ x, y }: { x: number; y: number }) {
+    const n = <Neighbours<Uint8Array>>{
+      left: this.chunks[this.chunkKey(x - 1, y)],
+      right: this.chunks[this.chunkKey(x + 1, y)],
+      front: this.chunks[this.chunkKey(x, y - 1)],
+      back: this.chunks[this.chunkKey(x, y + 1)],
+    };
+
+    // if (n.left && n.right && n.front && n.back) {
+    //   console.log(x, y);
+    //   console.log(n);
+    // }
+
+    return n;
   }
 
   /**
@@ -226,7 +265,7 @@ export default class ChunkController {
    * @param z
    * @returns
    */
-  private getChunk(position: vec3) {
+  getChunk(position: vec3) {
     const x = Math.floor(position[0] / this.size + this.chunkOffset);
     const y = Math.floor(position[2] / this.size + this.chunkOffset);
 

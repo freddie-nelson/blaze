@@ -31,7 +31,7 @@ export default class GeometryGenerator {
     };
   }
 
-  generateChunkGeometry(chunk: Uint8Array) {
+  generateChunkGeometry(chunk: Uint8Array, cNeighbours: Neighbours<Uint8Array>) {
     const indices: number[] = [];
     const vertices: number[] = [];
 
@@ -44,7 +44,7 @@ export default class GeometryGenerator {
             x,
             y,
             z,
-            this.getVoxelNeighbours(chunk, x, y, z),
+            this.getVoxelNeighbours(chunk, cNeighbours, x, y, z),
             vertices.length
           );
 
@@ -132,15 +132,39 @@ export default class GeometryGenerator {
     };
   }
 
-  private getVoxelNeighbours(chunk: Uint8Array, x: number, y: number, z: number) {
+  private getVoxelNeighbours(
+    chunk: Uint8Array,
+    cNeighbours: Neighbours<Uint8Array>,
+    x: number,
+    y: number,
+    z: number
+  ) {
     const neighbours: Neighbours<number> = {
-      back: z - 1 >= 0 ? chunk[from3Dto1D(x, y, z - 1, this.chunkSize, this.chunkHeight)] : null,
-      front: z + 1 < this.chunkSize ? chunk[from3Dto1D(x, y, z + 1, this.chunkSize, this.chunkHeight)] : null,
-      left: x - 1 >= 0 ? chunk[from3Dto1D(x - 1, y, z, this.chunkSize, this.chunkHeight)] : null,
-      right: x + 1 < this.chunkSize ? chunk[from3Dto1D(x + 1, y, z, this.chunkSize, this.chunkHeight)] : null,
-      top: y + 1 < this.chunkHeight ? chunk[from3Dto1D(x, y + 1, z, this.chunkSize, this.chunkHeight)] : null,
-      bottom: y - 1 >= 0 ? chunk[from3Dto1D(x, y - 1, z, this.chunkSize, this.chunkHeight)] : null,
+      front:
+        z - 1 >= 0
+          ? chunk[from3Dto1D(x, y, z - 1, this.chunkSize, this.chunkHeight)]
+          : cNeighbours.front[from3Dto1D(x, y, this.chunkSize - 1, this.chunkSize, this.chunkHeight)],
+      back:
+        z + 1 < this.chunkSize
+          ? chunk[from3Dto1D(x, y, z + 1, this.chunkSize, this.chunkHeight)]
+          : cNeighbours.back[from3Dto1D(x, y, 0, this.chunkSize, this.chunkHeight)],
+      left:
+        x - 1 >= 0
+          ? chunk[from3Dto1D(x - 1, y, z, this.chunkSize, this.chunkHeight)]
+          : cNeighbours.left[from3Dto1D(this.chunkSize - 1, y, z, this.chunkSize, this.chunkHeight)],
+      right:
+        x + 1 < this.chunkSize
+          ? chunk[from3Dto1D(x + 1, y, z, this.chunkSize, this.chunkHeight)]
+          : cNeighbours.right[from3Dto1D(0, y, z, this.chunkSize, this.chunkHeight)],
+      top:
+        y + 1 < this.chunkHeight
+          ? chunk[from3Dto1D(x, y + 1, z, this.chunkSize, this.chunkHeight)]
+          : undefined,
+      bottom: y - 1 >= 0 ? chunk[from3Dto1D(x, y - 1, z, this.chunkSize, this.chunkHeight)] : undefined,
     };
+
+    // if (!neighbours.right && cNeighbours.right)
+    // console.log(from3Dto1D(0, y, z, this.chunkSize, this.chunkHeight));
 
     return neighbours;
   }
