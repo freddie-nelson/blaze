@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   target: "web",
-  mode: "development",
+  mode: "production",
   entry: {
     main: "./dev/main.ts",
   },

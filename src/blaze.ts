@@ -1,11 +1,13 @@
 import { createRenderer } from "./renderer";
 import Player from "./player";
 import { clear } from "./utils/gl";
+import ChunkController, { RenderOptions } from "./chunk/controller";
 
 export default class Blaze {
   gl: WebGL2RenderingContext;
 
   player: Player;
+  chunkController: ChunkController;
 
   lastUpdateTime = performance.now();
   updateHooks: ((delta?: number) => void)[] = [];
@@ -27,7 +29,10 @@ export default class Blaze {
     this.lastUpdateTime = performance.now();
 
     clear(this.gl);
+
     this.player.update(delta);
+    if (this.chunkController) this.chunkController.update();
+
     this.updateHooks.forEach((h) => h(delta));
   }
 
@@ -44,5 +49,9 @@ export default class Blaze {
 
   initPlayer() {
     this.player = new Player(this.gl);
+  }
+
+  initChunkController(rOpts: RenderOptions) {
+    this.chunkController = new ChunkController(rOpts);
   }
 }

@@ -11,7 +11,12 @@ export default class Camera extends Object3D {
   up = vec3.fromValues(0, 1, 0);
   direction = vec3.fromValues(0, 0, -1);
 
-  constructor(gl: WebGL2RenderingContext, fov: number = Math.PI / 3, near: number = 0, far: number = 1000) {
+  constructor(
+    gl: WebGL2RenderingContext,
+    fov: number = Math.PI / 3,
+    near: number = 0.01,
+    far: number = 1000
+  ) {
     super();
 
     this.setProjectionMatrix(gl, fov, near, far);
@@ -20,7 +25,7 @@ export default class Camera extends Object3D {
   setProjectionMatrix(
     gl: WebGL2RenderingContext,
     fov: number = Math.PI / 3,
-    near: number = 0.1,
+    near: number = 0.01,
     far: number = 1000
   ) {
     this.fov = fov;
