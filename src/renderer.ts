@@ -24,10 +24,10 @@ export function createRenderer(canvas: HTMLCanvasElement) {
   const gl = canvas.getContext("webgl2");
   if (!gl) throw new Error("Your browser does not support WebGL 2.0");
 
-  resizeRendererToWindow(gl);
+  resizeRendererToCanvas(gl);
 
   gl.enable(gl.DEPTH_TEST);
-  // gl.enable(gl.CULL_FACE);
+  gl.enable(gl.CULL_FACE);
   gl.depthFunc(gl.LEQUAL);
   gl.depthMask(true);
   clear(gl);
@@ -40,9 +40,9 @@ export function createRenderer(canvas: HTMLCanvasElement) {
  *
  * @param gl
  */
-export function resizeRendererToWindow(gl: WebGL2RenderingContext) {
-  gl.canvas.width = window.innerWidth;
-  gl.canvas.height = window.innerHeight;
+export function resizeRendererToCanvas(gl: WebGL2RenderingContext) {
+  gl.canvas.width = (gl.canvas as HTMLCanvasElement).clientWidth;
+  gl.canvas.height = (gl.canvas as HTMLCanvasElement).clientHeight;
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 }
 

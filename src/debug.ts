@@ -7,9 +7,11 @@ export default class Debug {
   container: HTMLDivElement;
   fps: HTMLParagraphElement;
   coords: HTMLParagraphElement;
-  chunkCoords: HTMLParagraphElement;
-  renderedChunks: HTMLParagraphElement;
+  chunk: HTMLParagraphElement;
+  chunks: HTMLParagraphElement;
+  queued: HTMLParagraphElement;
   camera: HTMLParagraphElement;
+  frustum: HTMLParagraphElement;
 
   constructor(blz: Blaze) {
     this.blz = blz;
@@ -24,9 +26,11 @@ export default class Debug {
 
     this.fps = this.createText();
     this.coords = this.createText();
-    this.chunkCoords = this.createText();
-    this.renderedChunks = this.createText();
+    this.chunk = this.createText();
+    this.chunks = this.createText();
+    this.queued = this.createText();
     this.camera = this.createText();
+    this.frustum = this.createText();
   }
 
   update(delta: number) {
@@ -42,18 +46,35 @@ export default class Debug {
       1
     )}, z: ${position[2].toFixed(1)} }`;
 
-    const neighbours = this.blz.chunkController.getChunkNeighbours(chunk);
-    const emptyNeighbours = Object.keys(neighbours).map((k) => {
-      if (neighbours[k] && neighbours[k][0] === 0) return k;
-    });
-    this.chunkCoords.innerText = `Chunk { x: ${chunk.x}, y: ${chunk.y}, isEmpty: ${
-      this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`] &&
-      this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`][0] === 0
-    }, emptyNs: ${emptyNeighbours} }`;
+    // const neighbours = this.blz.chunkController.getChunkNeighbours(chunk);
+    // const emptyNeighbours = Object.keys(neighbours).map((k) => {
+    //   if (neighbours[k] && neighbours[k][0] === 0) return k;
+    // });
+    // this.chunk.innerText = `Chunk { x: ${chunk.x}, y: ${chunk.y}, isEmpty: ${
+    //   this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`] &&
+    //   this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`][0] === 0
+    // }, emptyNs: ${emptyNeighbours} }`;
+    this.chunk.innerText = `Chunk { x: ${chunk.x}, y: ${chunk.y} }`;
 
-    this.renderedChunks.innerText = `Chunks rendered: ${this.blz.chunkController.renderQueue.length}`;
+    this.chunks.innerText = `Chunks { loaded: ${
+      Object.keys(this.blz.chunkController.chunks).length
+    }, drawn: ${this.blz.chunkController.drawn} }`;
+
+    this.queued.innerText = `Queued { render: ${this.blz.chunkController.renderQueue.length}, geometry: ${this.blz.chunkController.queue.length} }`;
 
     this.camera.innerText = `Camera { yaw: ${((player.getRotation()[1] / Math.PI) * 180).toFixed(2)} }`;
+
+    // const frustum = player.camera.frustum;
+    // this.frustum.innerText = `Frustum: { \n__${frustum.planeKeys
+    //   .map((k) => {
+    //     const plane = frustum.planes[k];
+    //     return `${k[0]}: {${Object.keys(plane).reduce((acc, c) => {
+    //       // @ts-expect-error
+    //       acc += `${c}: ${plane[c].toFixed(2)},`;
+    //       return acc;
+    //     }, "")}}`;
+    //   })
+    //   .join("\n__")} \n}`;
   }
 
   dispose() {

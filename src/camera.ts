@@ -1,4 +1,5 @@
 import { mat4, vec3 } from "gl-matrix";
+import Frustum from "./frustum";
 import Object3D from "./object3d";
 
 export default class Camera extends Object3D {
@@ -11,27 +12,31 @@ export default class Camera extends Object3D {
   up = vec3.fromValues(0, 1, 0);
   direction = vec3.fromValues(0, 0, -1);
 
-  constructor(
-    gl: WebGL2RenderingContext,
-    fov: number = (70 * Math.PI) / 180,
-    near: number = 0.01,
-    far: number = 1000
-  ) {
+  lastDirection = vec3.create();
+  lastPosition = vec3.create();
+
+  frustum: Frustum;
+
+  constructor(gl: WebGL2RenderingContext, fov?: number, near?: number, far?: number) {
     super();
 
+    this.frustum = new Frustum();
     this.setProjectionMatrix(gl, fov, near, far);
+    // this.frustum.update(this);
   }
 
   setProjectionMatrix(
     gl: WebGL2RenderingContext,
     fov: number = (70 * Math.PI) / 180,
-    near: number = 0.01,
-    far: number = 1000
+    near: number = 0.1,
+    far: number = 2000
   ) {
     this.fov = fov;
     this.near = near;
     this.far = far;
     this.aspect = gl.canvas.width / gl.canvas.height;
+
+    this.frustum.resize(this.fov, near, far, this.aspect);
 
     mat4.perspective(this.projectionMatrix, this.fov, this.aspect, this.near, this.far);
   }
@@ -53,5 +58,19 @@ export default class Camera extends Object3D {
 
   getProjectionViewMatrix() {
     return mat4.multiply(mat4.create(), this.projectionMatrix, this.getViewMatrix());
+  }
+
+  update() {
+    // console.log(
+    //   !vec3.equals(this.getPosition(), this.lastPosition) || !vec3.equals(this.direction, this.lastDirection)
+    // );
+    if (
+      !vec3.exactEquals(this.getPosition(), this.lastPosition) ||
+      !vec3.exactEquals(this.direction, this.lastDirection)
+    )
+      this.frustum.update(this);
+
+    vec3.copy(this.lastDirection, this.direction);
+    vec3.copy(this.lastPosition, this.getPosition());
   }
 }

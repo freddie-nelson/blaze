@@ -6,8 +6,9 @@ import GeometryGenerator from "./geometry";
 
 import vsChunk from "../shaders/chunk/vertex.glsl";
 import fsChunk from "../shaders/chunk/fragment.glsl";
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec3, vec4 } from "gl-matrix";
 import { Neighbours } from "../voxel";
+import Box from "../physics/box";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
@@ -47,16 +48,17 @@ export default class ChunkController {
   shaderProgramInfo: ShaderProgramInfo;
 
   queue: { x: number; y: number }[] = [];
+  lastCenter: { x: number; y: number } = { x: NaN, y: NaN };
   maxChunksPerTick: number;
 
   chunks: { [index: string]: Uint8Array } = {};
   geometry: { [index: string]: { indices: Uint32Array; vertices: Float32Array } } = {};
   // buffers: { [index: string]: { indices: WebGLBuffer; vertices: WebGLBuffer } } = {};
   renderQueue: string[] = [];
+  renderQueueMax: number;
+  drawn = 0;
 
   constructor(opts: ChunkControllerOptions) {
-    if (opts.renderDist < 4) throw new Error("Render distance must be >= 4");
-
     this.gl = opts.gl;
     this.player = opts.player;
     this.generationDist = opts.renderDist + 2;
@@ -68,6 +70,7 @@ export default class ChunkController {
     this.chunkOffset = Math.floor(this.worldSize / 2);
     this.renderOffset = Math.floor(this.renderDist / 2);
     this.generationOffset = Math.floor(this.generationDist / 2);
+    this.renderQueueMax = this.renderDist * this.renderDist;
 
     this.chunkGenerator = new ChunkGenerator({ height: this.height, size: this.size });
     this.geometryGenerator = new GeometryGenerator({
@@ -97,23 +100,32 @@ export default class ChunkController {
 
   update() {
     const center = this.getChunk(this.player.getPosition());
+    if (
+      this.lastCenter.x !== center.x ||
+      this.lastCenter.y !== center.y ||
+      this.renderQueue.length !== this.renderQueueMax
+    ) {
+      this.lastCenter = center;
+      const generationLimits = {
+        lowerX: center.x - this.generationOffset,
+        iterationsX: this.generationDist,
+        lowerY: center.y - this.generationOffset,
+        iterationsY: this.generationDist,
+      };
+
+      this.queueChunks(generationLimits);
+      this.cleanQueue(generationLimits);
+
+      const generated = this.generateChunks();
+      this.generateGeometry(generated);
+    }
+
     const renderLimits = {
       lowerX: center.x - this.renderOffset,
       iterationsX: this.renderDist,
       lowerY: center.y - this.renderOffset,
       iterationsY: this.renderDist,
     };
-    const generationLimits = {
-      lowerX: center.x - this.generationOffset,
-      iterationsX: this.generationDist,
-      lowerY: center.y - this.generationOffset,
-      iterationsY: this.generationDist,
-    };
-
-    this.queueChunks(generationLimits);
-
-    const generated = this.generateChunks();
-    this.generateGeometry(generated);
 
     this.cleanRenderQueue(renderLimits);
     this.renderChunks();
@@ -133,6 +145,22 @@ export default class ChunkController {
         delete this.geometry[this.renderQueue[i]];
         // delete this.buffers[this.renderQueue[i]];
         this.renderQueue.splice(i, 1);
+      }
+    }
+  }
+
+  private cleanQueue(limits: Limits) {
+    for (let i = this.queue.length - 1; i >= 0; i--) {
+      const pos = { ...this.queue[i] };
+      pos.x += this.chunkOffset;
+      pos.y += this.chunkOffset;
+      if (
+        pos.x < limits.lowerX ||
+        pos.x >= limits.lowerX + limits.iterationsX ||
+        pos.y < limits.lowerY ||
+        pos.y >= limits.lowerY + limits.iterationsY
+      ) {
+        this.queue.splice(i, 1);
       }
     }
   }
@@ -189,9 +217,25 @@ export default class ChunkController {
   }
 
   private renderChunks() {
+    this.drawn = 0;
     for (const k of this.renderQueue) {
       const geo = this.geometry[k];
       const gl = this.gl;
+
+      // calculate chunk position matrix
+      const modelMatrix = mat4.create();
+      const position = this.chunkPos(k);
+      const positionVec = vec3.fromValues(position.x * this.size, this.bedrock, position.y * this.size);
+      mat4.translate(modelMatrix, modelMatrix, positionVec);
+
+      // calculate projection view matrix
+      const projectionViewMatrix = this.player.camera.getProjectionViewMatrix();
+
+      // frustum cull
+      if (!this.player.camera.frustum.containsBox(new Box(positionVec, this.size, this.height, this.size))) {
+        continue;
+      }
+      this.drawn++;
 
       // buffer data
       const verticesBuffer = gl.createBuffer();
@@ -224,17 +268,11 @@ export default class ChunkController {
       gl.uniformMatrix4fv(
         this.shaderProgramInfo.uniformLocations.projectionViewMatrix,
         false,
-        this.player.camera.getProjectionViewMatrix()
+        projectionViewMatrix
       );
 
       // position chunk
-      const modelMatrix = mat4.create();
-      const position = this.chunkPos(k);
-      mat4.translate(
-        modelMatrix,
-        modelMatrix,
-        vec3.fromValues(position.x * this.size, this.bedrock, position.y * this.size)
-      );
+
       gl.uniformMatrix4fv(this.shaderProgramInfo.uniformLocations.modelMatrix, false, modelMatrix);
 
       gl.drawElements(gl.TRIANGLES, geo.indices.length, gl.UNSIGNED_INT, 0);

@@ -58,11 +58,13 @@ export default class PointerLockControls {
     this.direction[1] = Math.sin(glMatrix.toRadian(this.pitch));
     this.direction[2] = Math.sin(glMatrix.toRadian(this.yaw)) * Math.cos(glMatrix.toRadian(this.pitch));
 
-    this.camera.direction = this.direction;
+    if (!vec3.equals(this.direction, this.camera.direction)) {
+      vec3.copy(this.camera.direction, this.direction);
 
-    if (this.object) {
-      const objectRotation = ((this.yaw + 90) % 360) * -1;
-      this.object.setRotationY(glMatrix.toRadian(objectRotation));
+      if (this.object) {
+        const objectRotation = ((this.yaw + 90) % 360) * -1;
+        this.object.setRotationY(glMatrix.toRadian(objectRotation));
+      }
     }
 
     this.movementX = 0;

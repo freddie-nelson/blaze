@@ -27,10 +27,12 @@ export default class Player extends Object3D {
   constructor(gl: WebGL2RenderingContext) {
     super();
 
-    this.setPositionY(this.height / 2);
+    this.setPosition(vec3.fromValues(-this.width / 2, this.height / 2, -this.width / 2));
 
     this.camera = new Camera(gl);
-    this.camera.setPosition(this.cameraPos);
+    const pos = vec3.create();
+    vec3.add(pos, this.getPosition(), this.cameraPos);
+    this.camera.setPosition(pos);
 
     this.plControls = new PointerLockControls(<HTMLElement>gl.canvas, this.camera, this);
   }
@@ -38,6 +40,7 @@ export default class Player extends Object3D {
   update(delta: number) {
     // update rotation
     this.plControls.update();
+    this.camera.update();
 
     // player movement
     const hasMoved = this.calcNewVelocity(delta);

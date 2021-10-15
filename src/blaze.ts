@@ -1,8 +1,9 @@
-import { createRenderer } from "./renderer";
+import { createRenderer, resizeRendererToCanvas } from "./renderer";
 import Player from "./player";
 import { clear } from "./utils/gl";
 import ChunkController, { ChunkControllerOptions } from "./chunk/controller";
 import Debug from "./debug";
+import { glMatrix } from "gl-matrix";
 
 export default class Blaze {
   gl: WebGL2RenderingContext;
@@ -23,6 +24,13 @@ export default class Blaze {
   constructor(canvas: HTMLCanvasElement) {
     const gl = createRenderer(canvas);
     this.gl = gl;
+
+    this.gl.canvas.addEventListener("resize", () => {
+      resizeRendererToCanvas(gl);
+      if (this.player) this.player.camera.setProjectionMatrix(gl);
+    });
+
+    glMatrix.setMatrixArrayType(Array);
   }
 
   update() {
