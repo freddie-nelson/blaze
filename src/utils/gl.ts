@@ -1,3 +1,5 @@
+import Color from "./Color";
+
 export interface ShaderProgramInfo {
   program: WebGLProgram;
   attribLocations: {
@@ -52,8 +54,8 @@ export function createShaderProgram(gl: WebGL2RenderingContext, vsSource: string
   return createProgram(gl, vertexShader, fragmentShader);
 }
 
-export function clear(gl: WebGL2RenderingContext) {
-  gl.clearColor(0, 0, 0, 1);
+export function clear(gl: WebGL2RenderingContext, color: Color = new Color("#000")) {
+  gl.clearColor(color.webgl[0], color.webgl[1], color.webgl[2], color.webgl[3]);
   gl.clearDepth(1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }

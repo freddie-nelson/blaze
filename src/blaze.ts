@@ -5,12 +5,15 @@ import ChunkController, { ChunkControllerOptions } from "./chunk/controller";
 import Debug from "./debug";
 import { glMatrix } from "gl-matrix";
 import Tilesheet from "./tilesheet";
+import Color from "./utils/Color";
 
 export default class Blaze {
   gl: WebGL2RenderingContext;
   private debug: Debug;
 
   player: Player;
+  skyColor = new Color("lightblue");
+
   chunkController: ChunkController;
 
   lastUpdateTime = performance.now();
@@ -39,7 +42,7 @@ export default class Blaze {
     const delta = (performance.now() - this.lastUpdateTime) / 1000;
     this.lastUpdateTime = performance.now();
 
-    clear(this.gl);
+    clear(this.gl, this.skyColor);
 
     this.player.update(delta);
     if (this.chunkController) this.chunkController.update();
