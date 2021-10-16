@@ -60,7 +60,7 @@ export default class Debug {
       Object.keys(this.blz.chunkController.chunks).length
     }, drawn: ${this.blz.chunkController.drawn} }`;
 
-    this.queued.innerText = `Queued { render: ${this.blz.chunkController.renderQueue.length}, geometry: ${this.blz.chunkController.queue.length} }`;
+    this.queued.innerText = `Queued { render: ${this.blz.chunkController.renderQueue.length}, generation: ${this.blz.chunkController.queue.length} }`;
 
     this.camera.innerText = `Camera { yaw: ${((player.getRotation()[1] / Math.PI) * 180).toFixed(2)} }`;
 

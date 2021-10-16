@@ -6,7 +6,7 @@ import GeometryGenerator from "./geometry";
 
 import vsChunk from "../shaders/chunk/vertex.glsl";
 import fsChunk from "../shaders/chunk/fragment.glsl";
-import { mat4, vec3, vec4 } from "gl-matrix";
+import { mat4, vec2, vec3, vec4 } from "gl-matrix";
 import { Neighbours } from "../voxel";
 import Box from "../physics/box";
 
@@ -32,7 +32,7 @@ export default class ChunkController {
 
   player: Player;
 
-  height = 127;
+  height = 255;
   size = 8;
   bedrock: number;
 
@@ -100,25 +100,13 @@ export default class ChunkController {
 
   update() {
     const center = this.getChunk(this.player.getPosition());
-    if (
-      this.lastCenter.x !== center.x ||
-      this.lastCenter.y !== center.y ||
-      this.renderQueue.length !== this.renderQueueMax
-    ) {
+    if (this.lastCenter.x !== center.x || this.lastCenter.y !== center.y) {
       this.lastCenter = center;
-      const generationLimits = {
-        lowerX: center.x - this.generationOffset,
-        iterationsX: this.generationDist,
-        lowerY: center.y - this.generationOffset,
-        iterationsY: this.generationDist,
-      };
 
-      this.queueChunks(generationLimits);
-      this.cleanQueue(generationLimits);
-
-      const generated = this.generateChunks();
-      this.generateGeometry(generated);
+      this.queueChunks(center);
     }
+
+    this.generateChunks();
 
     const renderLimits = {
       lowerX: center.x - this.renderOffset,
@@ -127,58 +115,51 @@ export default class ChunkController {
       iterationsY: this.renderDist,
     };
 
-    this.cleanRenderQueue(renderLimits);
+    this.generateGeometry(renderLimits);
     this.renderChunks();
   }
 
-  private cleanRenderQueue(limits: Limits) {
-    for (let i = this.renderQueue.length - 1; i >= 0; i--) {
-      const pos = this.chunkPos(this.renderQueue[i]);
-      pos.x += this.chunkOffset;
-      pos.y += this.chunkOffset;
-      if (
-        pos.x < limits.lowerX ||
-        pos.x >= limits.lowerX + limits.iterationsX ||
-        pos.y < limits.lowerY ||
-        pos.y >= limits.lowerY + limits.iterationsY
-      ) {
-        delete this.geometry[this.renderQueue[i]];
-        // delete this.buffers[this.renderQueue[i]];
-        this.renderQueue.splice(i, 1);
-      }
-    }
-  }
+  /**
+   * Queues chunks for generation around **center**
+   * Uses modified BFS algorithm to produce queue with chunks ordered by distance from **center**
+   *
+   * @param center center of generation algorithm
+   */
+  private queueChunks(center: { x: number; y: number }) {
+    const start = { x: center.x - this.chunkOffset, y: center.y - this.chunkOffset };
+    const startVec = vec2.fromValues(start.x, start.y);
+    const maxDist = this.generationDist / 1.5;
 
-  private cleanQueue(limits: Limits) {
-    for (let i = this.queue.length - 1; i >= 0; i--) {
-      const pos = { ...this.queue[i] };
-      pos.x += this.chunkOffset;
-      pos.y += this.chunkOffset;
-      if (
-        pos.x < limits.lowerX ||
-        pos.x >= limits.lowerX + limits.iterationsX ||
-        pos.y < limits.lowerY ||
-        pos.y >= limits.lowerY + limits.iterationsY
-      ) {
-        this.queue.splice(i, 1);
-      }
-    }
-  }
+    const queue = [start];
+    const needsGeneration = [];
+    if (!this.chunks[this.chunkKey(start.x, start.y)]) needsGeneration.push(start);
 
-  private queueChunks(limits: Limits) {
-    // queue chunks within player's render distance
-    for (let y = limits.lowerY; y < limits.lowerY + limits.iterationsY; y++) {
-      for (let x = limits.lowerX; x < limits.lowerX + limits.iterationsX; x++) {
-        const pos = { x: x - this.chunkOffset, y: y - this.chunkOffset };
-        const key = this.chunkKey(pos.x, pos.y);
+    let offset = 0;
+    while (true) {
+      const current = queue[offset];
 
-        if (
-          this.renderQueue.findIndex((k) => k === key) === -1 &&
-          this.queue.findIndex((p) => p.x === pos.x && p.y === pos.y) === -1
-        )
-          this.queue.push(pos);
+      const ns = [];
+      ns.push({ x: current.x - 1, y: current.y });
+      ns.push({ x: current.x + 1, y: current.y });
+      ns.push({ x: current.x, y: current.y - 1 });
+      ns.push({ x: current.x, y: current.y + 1 });
+
+      for (const n of ns) {
+        if (queue.findIndex((c) => c.x === n.x && c.y === n.y) === -1) {
+          if (this.chunks[this.chunkKey(n.x, n.y)]) queue.push(n);
+          else {
+            queue.push(n);
+            needsGeneration.push(n);
+          }
+        }
       }
+
+      offset++;
+      const dist = vec2.dist(vec2.fromValues(queue[queue.length - 1].x, queue[queue.length - 1].y), startVec);
+      if (offset >= queue.length || dist >= maxDist) break;
     }
+
+    this.queue = needsGeneration;
   }
 
   private generateChunks() {
@@ -186,8 +167,10 @@ export default class ChunkController {
 
     for (let i = 0; i < this.maxChunksPerTick && this.queue.length !== 0; i++) {
       const pos = this.queue.shift();
-      const c = this.chunkGenerator.generateChunk(pos);
       const key = this.chunkKey(pos.x, pos.y);
+      if (this.chunks[key]) continue;
+
+      const c = this.chunkGenerator.generateChunk(pos);
       this.chunks[key] = c;
       generated.push(key);
     }
@@ -195,24 +178,29 @@ export default class ChunkController {
     return generated;
   }
 
-  private generateGeometry(chunks: string[]) {
-    for (const k of chunks) {
-      if (!this.geometry[k]) {
-        // console.log(k);
-        const pos = this.chunkPos(k);
-        const neighbours = this.getChunkNeighbours(pos);
+  private generateGeometry(limits: Limits) {
+    this.renderQueue = [];
 
-        if (neighbours.left && neighbours.right && neighbours.front && neighbours.back) {
-          this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
-            this.geometryGenerator.generateChunkGeometry(this.chunks[k], neighbours)
-          );
-        } else {
-          this.queue.push(pos);
-          continue;
+    for (let y = limits.lowerY; y < limits.lowerY + limits.iterationsY; y++) {
+      for (let x = limits.lowerX; x < limits.lowerX + limits.iterationsX; x++) {
+        const pos = { x: x - this.chunkOffset, y: y - this.chunkOffset };
+        const k = this.chunkKey(pos.x, pos.y);
+
+        if (!this.geometry[k]) {
+          const pos = this.chunkPos(k);
+          const neighbours = this.getChunkNeighbours(pos);
+
+          if (neighbours.left && neighbours.right && neighbours.front && neighbours.back) {
+            this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
+              this.geometryGenerator.generateChunkGeometry(this.chunks[k], neighbours)
+            );
+          } else {
+            continue;
+          }
         }
-      }
 
-      this.renderQueue.push(k);
+        this.renderQueue.push(k);
+      }
     }
   }
 
