@@ -64,10 +64,10 @@ export default class ChunkController {
 
   constructor(opts: ChunkControllerOptions) {
     // validation checks
-    if (opts.chunkSize && (opts.chunkSize < 1 || opts.chunkSize > 16))
-      throw new Error("Chunk Controller: chunk size must be between 1 and 16 inclusive.");
-    if (opts.chunkHeight && (opts.chunkHeight < 2 || opts.chunkHeight > 256))
-      throw new Error("Chunk Controller: chunk height must be between 2 and 256 inclusive.");
+    if (opts.chunkSize && (opts.chunkSize < 1 || opts.chunkSize > 15))
+      throw new Error("Chunk Controller: chunk size must be between 1 and 15 inclusive.");
+    if (opts.chunkHeight && (opts.chunkHeight < 1 || opts.chunkHeight > 1023))
+      throw new Error("Chunk Controller: chunk height must be between 1 and 1023 inclusive.");
 
     this.gl = opts.gl;
     this.player = opts.player;

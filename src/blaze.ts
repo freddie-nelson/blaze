@@ -12,7 +12,7 @@ export default class Blaze {
   private debug: Debug;
 
   player: Player;
-  skyColor = new Color("lightblue");
+  skyColor = new Color("#000");
 
   chunkController: ChunkController;
 

@@ -18,8 +18,8 @@ out highp vec2 vTexCoord;
  
 void main() {
   highp uint vertexData = floatBitsToUint(aVertex);
-  float x = float((vertexData & 0x1E000000u) >> 25u);
-  float y = float((vertexData & 0x1FE0000u) >> 17u);
+  float x = float((vertexData & 0x78000000u) >> 27u);
+  float y = float((vertexData & 0x7FE0000u) >> 17u);
   float z = float((vertexData & 0x1E000u) >> 13u);
 
   vNormal = float((vertexData & 0x1C00u) >> 10u) / 5.0f;

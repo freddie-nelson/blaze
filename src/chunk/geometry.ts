@@ -91,10 +91,10 @@ export default class GeometryGenerator {
         for (let i = 0; i < faces[k].corners.length; i++) {
           const corner = faces[k].corners[i];
 
-          // position { x: 4 bits, y: 8 bits, z: 4 bits } : format { x - y - z }
+          // position { x: 4 bits, y: 10 bits, z: 4 bits } : format { x - y - z }
           let p = corner.pos[2] + z;
           p |= (corner.pos[1] + y) << 4;
-          p |= (corner.pos[0] + x) << 12;
+          p |= (corner.pos[0] + x) << 14;
           p = p >>> 0;
 
           // normal 3 bits
@@ -104,11 +104,11 @@ export default class GeometryGenerator {
           // uv { texIndex: 8bits, uv: 2 bits }
           const find = corner.uv;
           let uv = this.shaderUvs.findIndex((suv) => suv[0] === find[0] && suv[1] === find[1]);
-          if (uv === -1) throw new Error("Voxel corner uv not found.");
+          if (uv === -1) throw new Error(`Geometry Generator: Voxel (${x}, ${y}, ${z}) vertex uv not found.`);
           uv |= id << 2;
           uv = uv >>> 0;
 
-          // vertex { position: 16 bits, normal: 3 bits, uv: 10 bits } : format { position - normal - uv }
+          // vertex { position: 18 bits, normal: 3 bits, uv: 10 bits } : format { position - normal - uv }
           let vertex = uv | (normalScaled << 10) | (p << 13);
           vertex = vertex >>> 0;
           vertices.push(vertex);
@@ -125,7 +125,7 @@ export default class GeometryGenerator {
           // if (uv1 !== find) console.log("uv: " + uv1, find);
           // if (id1 !== id) console.log("id: " + id1, id);
           // if (x === 0) console.log(vertex.toString(2));
-          // console.log(id1);
+          // console.log(vertex.toString(2));
         }
 
         indices.push(ndx, ndx + 1, ndx + 2, ndx, ndx + 2, ndx + 3);
