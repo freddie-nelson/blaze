@@ -1,12 +1,16 @@
 #version 300 es
 precision highp float;
 
-in vec3 normal;
+in float vNormal;
+in vec2 vTexCoord;
+
+uniform sampler2D uTexture;
 
 out vec4 outColor;
 
 void main() {
-  vec3 color = vec3(0, 1.0, 0);
+  outColor = vNormal * texture(uTexture, vTexCoord);
+  if (outColor.a == 0.0f) discard;
 
-  outColor = vec4(color * normal, 1.0);
+  outColor.a = 1.0;
 }

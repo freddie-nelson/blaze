@@ -4,6 +4,7 @@ import { clear } from "./utils/gl";
 import ChunkController, { ChunkControllerOptions } from "./chunk/controller";
 import Debug from "./debug";
 import { glMatrix } from "gl-matrix";
+import Tilesheet from "./tilesheet";
 
 export default class Blaze {
   gl: WebGL2RenderingContext;
@@ -65,6 +66,12 @@ export default class Blaze {
 
   initChunkController(opts: ChunkControllerOptions) {
     this.chunkController = new ChunkController(opts);
+  }
+
+  setTilesheet(path: string, tileSize: number, numOfTiles: number) {
+    if (!this.chunkController) throw new Error("You must init the chunk controller before tilesheet.");
+
+    this.chunkController.tilesheet = new Tilesheet(this.gl, path, tileSize, numOfTiles);
   }
 
   toggleDebug() {

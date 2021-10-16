@@ -13,6 +13,8 @@ export default class Debug {
   camera: HTMLParagraphElement;
   frustum: HTMLParagraphElement;
 
+  lineMode: HTMLInputElement;
+
   constructor(blz: Blaze) {
     this.blz = blz;
 
@@ -31,6 +33,11 @@ export default class Debug {
     this.queued = this.createText();
     this.camera = this.createText();
     this.frustum = this.createText();
+    this.lineMode = this.createToggle("Draw Lines: ", (val) =>
+      val
+        ? (this.blz.chunkController.drawMode = WebGL2RenderingContext.LINES)
+        : (this.blz.chunkController.drawMode = WebGL2RenderingContext.TRIANGLES)
+    );
   }
 
   update(delta: number) {
@@ -86,5 +93,20 @@ export default class Debug {
     text.setAttribute("style", "font-family: monospace; font-size: .8rem; color: white;  margin: 4px 0;");
     this.container.appendChild(text);
     return text;
+  }
+
+  private createToggle(text: string, cb: (val: boolean) => void) {
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.addEventListener("input", (e) => cb((e.target as HTMLInputElement).checked));
+    const p = this.createText();
+    p.style.display = "flex";
+    p.style.alignItems = "center";
+    p.style.marginTop = "-4px";
+    box.style.marginLeft = "4px";
+    p.innerText = text;
+    p.appendChild(box);
+    this.container.appendChild(p);
+    return box;
   }
 }

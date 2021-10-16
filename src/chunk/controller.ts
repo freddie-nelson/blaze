@@ -1,14 +1,14 @@
 import Player from "../player";
-import { ShaderProgramInfo } from "../renderer";
-import { createShaderProgram } from "../utils/gl";
+import { createShaderProgram, ShaderProgramInfo } from "../utils/gl";
 import ChunkGenerator from "./generator";
 import GeometryGenerator from "./geometry";
 
 import vsChunk from "../shaders/chunk/vertex.glsl";
 import fsChunk from "../shaders/chunk/fragment.glsl";
-import { mat4, vec2, vec3, vec4 } from "gl-matrix";
+import { mat4, vec2, vec3 } from "gl-matrix";
 import { Neighbours } from "../voxel";
 import Box from "../physics/box";
+import Tilesheet from "../tilesheet";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
@@ -17,6 +17,8 @@ export interface ChunkControllerOptions {
   worldSize: number;
   maxChunksPerTick: number;
   bedrock: number;
+  chunkSize?: number;
+  chunkHeight?: number;
 }
 
 export interface Limits {
@@ -46,19 +48,27 @@ export default class ChunkController {
   gl: WebGL2RenderingContext;
   shader: WebGLProgram;
   shaderProgramInfo: ShaderProgramInfo;
+  tilesheet: Tilesheet;
 
   queue: { x: number; y: number }[] = [];
   lastCenter: { x: number; y: number } = { x: NaN, y: NaN };
   maxChunksPerTick: number;
 
   chunks: { [index: string]: Uint8Array } = {};
-  geometry: { [index: string]: { indices: Uint32Array; vertices: Float32Array } } = {};
+  geometry: { [index: string]: { indices: Uint32Array; vertices: Uint32Array } } = {};
   // buffers: { [index: string]: { indices: WebGLBuffer; vertices: WebGLBuffer } } = {};
   renderQueue: string[] = [];
   renderQueueMax: number;
   drawn = 0;
+  drawMode = WebGL2RenderingContext.TRIANGLES;
 
   constructor(opts: ChunkControllerOptions) {
+    // validation checks
+    if (opts.chunkSize && (opts.chunkSize < 1 || opts.chunkSize > 16))
+      throw new Error("Chunk Controller: chunk size must be between 1 and 16 inclusive.");
+    if (opts.chunkHeight && (opts.chunkHeight < 2 || opts.chunkHeight > 256))
+      throw new Error("Chunk Controller: chunk height must be between 2 and 256 inclusive.");
+
     this.gl = opts.gl;
     this.player = opts.player;
     this.generationDist = opts.renderDist + 2;
@@ -66,6 +76,8 @@ export default class ChunkController {
     this.maxChunksPerTick = opts.maxChunksPerTick;
     this.worldSize = opts.worldSize;
     this.bedrock = opts.bedrock;
+    if (opts.chunkSize) this.size = opts.chunkSize;
+    if (opts.chunkHeight) this.height = opts.chunkHeight;
 
     this.chunkOffset = Math.floor(this.worldSize / 2);
     this.renderOffset = Math.floor(this.renderDist / 2);
@@ -76,9 +88,6 @@ export default class ChunkController {
     this.geometryGenerator = new GeometryGenerator({
       chunkSize: this.size,
       chunkHeight: this.height,
-      tileSize: 16,
-      tileTextureHeight: 96,
-      tileTextureWidth: 48,
     });
 
     this.setupShader(this.gl);
@@ -94,6 +103,8 @@ export default class ChunkController {
       uniformLocations: {
         projectionViewMatrix: gl.getUniformLocation(this.shader, "uProjectionViewMatrix"),
         modelMatrix: gl.getUniformLocation(this.shader, "uModelMatrix"),
+        texture: gl.getUniformLocation(this.shader, "uTexture"),
+        numOfTiles: gl.getUniformLocation(this.shader, "uNumOfTiles"),
       },
     };
   }
@@ -230,6 +241,8 @@ export default class ChunkController {
       gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, geo.vertices, gl.STATIC_DRAW);
 
+      // console.log(geo.vertices[2].toString(2));
+
       const indexBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geo.indices, gl.STATIC_DRAW);
@@ -258,12 +271,17 @@ export default class ChunkController {
         false,
         projectionViewMatrix
       );
-
-      // position chunk
-
       gl.uniformMatrix4fv(this.shaderProgramInfo.uniformLocations.modelMatrix, false, modelMatrix);
 
-      gl.drawElements(gl.TRIANGLES, geo.indices.length, gl.UNSIGNED_INT, 0);
+      // set texture if tilesheet exists
+      if (this.tilesheet) {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.tilesheet.texture);
+        gl.uniform1i(this.shaderProgramInfo.uniformLocations.texture, 0);
+        gl.uniform1f(this.shaderProgramInfo.uniformLocations.numOfTiles, this.tilesheet.numOfTiles);
+      }
+
+      gl.drawElements(this.drawMode, geo.indices.length, gl.UNSIGNED_INT, 0);
     }
   }
 

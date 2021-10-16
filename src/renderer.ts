@@ -1,16 +1,5 @@
 import { clear } from "./utils/gl";
 
-export interface ShaderProgramInfo {
-  program: WebGLProgram;
-  attribLocations: {
-    [index: string]: number;
-  };
-  uniformLocations: {
-    projectionViewMatrix: WebGLUniformLocation;
-    modelMatrix: WebGLUniformLocation;
-  };
-}
-
 /**
  * Creates the webgl2 rendering context for the canvas
  * Also resizes the canvas to fit the window and clears the webgl buffer

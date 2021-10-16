@@ -4,9 +4,6 @@ import { faces, Neighbours } from "../voxel";
 export interface GeometryGeneratorOptions {
   chunkSize: number;
   chunkHeight: number;
-  tileSize: number;
-  tileTextureWidth: number;
-  tileTextureHeight: number;
 }
 
 export default class GeometryGenerator {
@@ -19,16 +16,16 @@ export default class GeometryGenerator {
   constructor(opts: GeometryGeneratorOptions) {
     this.chunkSize = opts.chunkSize;
     this.chunkHeight = opts.chunkHeight;
-    this.tileSize = opts.tileSize;
-    this.tileTextureWidth = opts.tileTextureWidth;
-    this.tileTextureHeight = opts.tileTextureHeight;
   }
 
   convertGeoToTypedArrs(geo: { indices: number[]; vertices: number[] }) {
-    return {
-      vertices: new Float32Array(geo.vertices),
+    const g = {
+      vertices: new Uint32Array(geo.vertices),
       indices: new Uint32Array(geo.indices),
     };
+    // console.log(g.vertices[2].toString(2));
+
+    return g;
   }
 
   generateChunkGeometry(chunk: Uint8Array, cNeighbours: Neighbours<Uint8Array>) {
@@ -54,11 +51,20 @@ export default class GeometryGenerator {
       }
     }
 
+    // console.log(vertices[2].toString(2));
+
     return {
       indices,
       vertices,
     };
   }
+
+  private readonly shaderUvs = [
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1],
+  ];
 
   generateVoxelGeometry(
     id: number,
@@ -96,21 +102,30 @@ export default class GeometryGenerator {
           normalScaled = normalScaled >>> 0;
 
           // uv { texIndex: 8bits, uv: 2 bits }
-          let u = i;
-          u |= id << 2;
-          u = u >>> 0;
+          const find = corner.uv;
+          let uv = this.shaderUvs.findIndex((suv) => suv[0] === find[0] && suv[1] === find[1]);
+          if (uv === -1) throw new Error("Voxel corner uv not found.");
+          uv |= id << 2;
+          uv = uv >>> 0;
 
           // vertex { position: 16 bits, normal: 3 bits, uv: 10 bits } : format { position - normal - uv }
-          const vertex = (p << 13) | (normalScaled << 10) | u;
+          let vertex = uv | (normalScaled << 10) | (p << 13);
+          vertex = vertex >>> 0;
           vertices.push(vertex);
 
           // check for errors in bitwise operations
           // const x1 = (vertex & 0x1e000000) >> 25;
           // const y1 = (vertex & 0x1fe0000) >> 17;
           // const z1 = (vertex & 0x1e000) >> 13;
+          // const uv1 = vertex & 0x3;
+          // const id1 = (vertex & 0x3fc) >> 2;
           // if (x1 !== corner.pos[0] + x) console.log("x: " + x1, corner.pos[0] + x);
           // if (y1 !== corner.pos[1] + y) console.log("y: " + y1, corner.pos[1] + y);
           // if (z1 !== corner.pos[2] + z) console.log("z: " + z1, corner.pos[2] + z);
+          // if (uv1 !== find) console.log("uv: " + uv1, find);
+          // if (id1 !== id) console.log("id: " + id1, id);
+          // if (x === 0) console.log(vertex.toString(2));
+          // console.log(id1);
         }
 
         indices.push(ndx, ndx + 1, ndx + 2, ndx, ndx + 2, ndx + 3);

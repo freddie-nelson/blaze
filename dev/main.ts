@@ -6,10 +6,14 @@ blz.initChunkController({
   gl: blz.gl,
   player: blz.player,
   worldSize: 1024,
-  renderDist: 16,
+  renderDist: 12,
   maxChunksPerTick: 1,
-  bedrock: -255,
+  bedrock: -128,
+  chunkSize: 8,
+  chunkHeight: 128,
 });
+
+blz.setTilesheet("tilesheet.png", 16, 22);
 
 blz.toggleDebug();
 
