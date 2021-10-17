@@ -28,6 +28,8 @@ export default class Color {
       valid = this.validateHTML(color);
       if (valid) this.parseHTML(color);
     }
+
+    if (!valid) throw new Error(`Color: '${color}' is not a valid color representation.`);
   }
 
   validateRGBA(color: RGBAColor): boolean {
