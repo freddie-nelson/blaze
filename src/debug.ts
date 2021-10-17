@@ -15,6 +15,8 @@ export default class Debug {
 
   lineMode: HTMLInputElement;
 
+  reloadChunks: HTMLButtonElement;
+
   constructor(blz: Blaze) {
     this.blz = blz;
 
@@ -38,6 +40,7 @@ export default class Debug {
         ? (this.blz.chunkController.drawMode = WebGL2RenderingContext.LINES)
         : (this.blz.chunkController.drawMode = WebGL2RenderingContext.TRIANGLES)
     );
+    this.reloadChunks = this.createButton("Reload Chunks", () => (this.blz.chunkController.geometry = {}));
   }
 
   update(delta: number) {
@@ -108,5 +111,14 @@ export default class Debug {
     p.appendChild(box);
     this.container.appendChild(p);
     return box;
+  }
+
+  private createButton(text: string, cb: () => void) {
+    const btn = document.createElement("button");
+    btn.setAttribute("style", "font-family: monospace; font-size: .8rem; color: black;  margin: 4px 0;");
+    btn.innerText = text;
+    btn.addEventListener("click", cb);
+    this.container.appendChild(btn);
+    return btn;
   }
 }

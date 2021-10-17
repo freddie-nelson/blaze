@@ -1,3 +1,5 @@
+import { vec3 } from "gl-matrix";
+
 export interface Neighbours<T> {
   [index: string]: T;
   left?: T;
@@ -81,3 +83,33 @@ export const faces: { [index: string]: Face } = {
     ],
   },
 };
+
+/**
+ * Translates a world position into a local chunk and voxel position.
+ *
+ * @param position
+ * @param chunkSize
+ * @param chunkOffset
+ * @param bedrock
+ * @returns The chunks local position and the voxel's local position within the chunk.
+ */
+export function getVoxel(position: vec3, chunkSize: number, bedrock: number) {
+  const chunk = {
+    x: Math.floor(position[0] / chunkSize),
+    y: Math.floor(position[2] / chunkSize),
+  };
+
+  const chunkWorldX = chunk.x * chunkSize;
+  const chunkWorldZ = chunk.y * chunkSize;
+
+  const voxel = {
+    x: Math.floor(position[0]) - chunkWorldX,
+    y: Math.floor(position[1]) - bedrock - 1,
+    z: Math.floor(position[2]) - chunkWorldZ,
+  };
+
+  return {
+    chunk,
+    voxel,
+  };
+}

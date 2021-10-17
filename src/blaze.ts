@@ -5,7 +5,7 @@ import ChunkController, { ChunkControllerOptions } from "./chunk/controller";
 import Debug from "./debug";
 import { glMatrix } from "gl-matrix";
 import Tilesheet from "./tilesheet";
-import Color from "./utils/Color";
+import Color from "./utils/color";
 
 export default class Blaze {
   gl: WebGL2RenderingContext;

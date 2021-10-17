@@ -39,38 +39,4 @@ export default class Box {
 
     return points;
   }
-
-  // getVN(p: Plane) {
-  //   const res = vec3.create();
-  //   vec3.copy(res, this.position);
-
-  //   if (p.a < 0) {
-  //     res[0] += this.width;
-  //   }
-  //   if (p.b < 0) {
-  //     res[1] += this.height;
-  //   }
-  //   if (p.c < 0) {
-  //     res[2] += this.depth;
-  //   }
-
-  //   return res;
-  // }
-
-  // getVP(p: Plane) {
-  //   const res = vec3.create();
-  //   vec3.copy(res, this.position);
-
-  //   if (p.a > 0) {
-  //     res[0] += this.width;
-  //   }
-  //   if (p.b > 0) {
-  //     res[1] += this.height;
-  //   }
-  //   if (p.c > 0) {
-  //     res[2] += this.depth;
-  //   }
-
-  //   return res;
-  // }
 }

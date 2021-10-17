@@ -319,11 +319,11 @@ export default class ChunkController {
     };
   }
 
-  private chunkKey(x: number, y: number) {
+  chunkKey(x: number, y: number) {
     return `${x} ${y}`;
   }
 
-  private chunkPos(key: string) {
+  chunkPos(key: string) {
     const split = key.split(" ");
     if (split.length !== 2)
       return {

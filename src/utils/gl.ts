@@ -1,4 +1,4 @@
-import Color from "./Color";
+import Color from "./color";
 
 export interface ShaderProgramInfo {
   program: WebGLProgram;
