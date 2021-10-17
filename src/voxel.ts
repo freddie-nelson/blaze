@@ -14,6 +14,16 @@ export interface Neighbours<T> {
   br?: T;
 }
 
+export interface VoxelLocation {
+  chunk: {
+    x: number;
+    y: number;
+  };
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface Face {
   uvCol: number;
   normal: number;
@@ -91,9 +101,16 @@ export const faces: { [index: string]: Face } = {
  * @param chunkSize
  * @param chunkOffset
  * @param bedrock
+ *
  * @returns The chunks local position and the voxel's local position within the chunk.
+ * @returns Returns undefined if voxel position exceeds chunk limits
  */
-export function getVoxel(position: vec3, chunkSize: number, bedrock: number) {
+export function getVoxel(
+  position: vec3,
+  chunkSize: number,
+  chunkHeight: number,
+  bedrock: number
+): VoxelLocation | undefined {
   const chunk = {
     x: Math.floor(position[0] / chunkSize),
     y: Math.floor(position[2] / chunkSize),
@@ -104,12 +121,14 @@ export function getVoxel(position: vec3, chunkSize: number, bedrock: number) {
 
   const voxel = {
     x: Math.floor(position[0]) - chunkWorldX,
-    y: Math.floor(position[1]) - bedrock - 1,
+    y: Math.floor(position[1]) - bedrock,
     z: Math.floor(position[2]) - chunkWorldZ,
   };
 
+  if (voxel.y >= chunkHeight) return undefined;
+
   return {
     chunk,
-    voxel,
+    ...voxel,
   };
 }

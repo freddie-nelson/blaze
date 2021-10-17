@@ -1,13 +1,17 @@
 import { vec3 } from "gl-matrix";
 import Camera from "./camera";
+import ChunkController from "./chunk/controller";
 import { isKeyPressed } from "./keyboard";
+import { isMouseDown, MOUSE } from "./mouse";
 import Object3D from "./object3d";
+import Raycaster from "./physics/raycaster/raycaster";
 import PointerLockControls from "./pointerLockControls";
 
 export default class Player extends Object3D {
   height = 1.8;
   width = 0.8;
 
+  // movement
   walkForce = 5;
   jumpForce = 6.8;
   acceleration = 80;
@@ -18,16 +22,20 @@ export default class Player extends Object3D {
   velocity = vec3.fromValues(0, 0, 0);
   maxVelocity = vec3.fromValues(5, 20, 5);
 
+  // camera
   camera: Camera;
-  cameraPos = vec3.fromValues(this.width / 2, this.height / 3, this.width / 2);
-  direction = vec3.fromValues(0, 0, -1);
-
+  cameraPos = vec3.fromValues(0, this.height, 0);
   plControls: PointerLockControls;
+
+  // block picking
+  private blockPickingChunks: ChunkController;
+  private enableBlockPicking = false;
+  private maxBlockPickingDist = 5;
 
   constructor(gl: WebGL2RenderingContext) {
     super();
 
-    this.setPosition(vec3.fromValues(-this.width / 2, this.height / 2, -this.width / 2));
+    this.setPosition(vec3.fromValues(0, this.height / 2, 0));
 
     this.camera = new Camera(gl);
     const pos = vec3.create();
@@ -41,6 +49,9 @@ export default class Player extends Object3D {
     // update rotation
     this.plControls.update();
     this.camera.update();
+
+    // block picking
+    if (this.enableBlockPicking) this.pickBlock();
 
     // player movement
     const hasMoved = this.calcNewVelocity(delta);
@@ -120,5 +131,35 @@ export default class Player extends Object3D {
     const position = vec3.create();
     vec3.add(position, this.getPosition(), this.cameraPos);
     this.camera.setPosition(position);
+  }
+
+  private pickBlock() {
+    if (!isMouseDown(MOUSE.LEFT)) return;
+
+    const raycaster = new Raycaster(
+      this.camera.getPosition(),
+      this.camera.direction,
+      this.maxBlockPickingDist
+    );
+    const intersections = raycaster.intersectChunks(this.blockPickingChunks);
+    console.log(intersections);
+  }
+
+  // toggles
+  toggleBlockPicking(enable: boolean, chunkController?: ChunkController, maxBlockPickingDist = 5) {
+    this.enableBlockPicking = enable;
+
+    if (enable) {
+      if (!chunkController)
+        throw new Error("Player: Chunk controller must be provided when enabling block picking.");
+
+      this.blockPickingChunks = chunkController;
+      this.maxBlockPickingDist = maxBlockPickingDist;
+    }
+  }
+
+  getPosition(): vec3 {
+    const pos = super.getPosition();
+    return vec3.fromValues(pos[0] + this.width / 2, pos[1] - this.height / 2, pos[2] + this.width / 2);
   }
 }
