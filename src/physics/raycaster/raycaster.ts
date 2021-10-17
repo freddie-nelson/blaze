@@ -106,27 +106,22 @@ export default class Raycaster {
         }
       }
 
-      const chunk = chunkController.chunks[chunkController.chunkKey(x, z)];
-      if (chunk) {
-        const vox = getVoxel(
-          vec3.fromValues(x, y, z),
-          chunkController.size,
-          chunkController.height,
-          chunkController.bedrock
-        );
-        if (vox) {
-          intersections.push({
-            location: vox,
-            face: vec3.fromValues(face[0], face[1], face[2]),
-          });
-        }
+      const vox = getVoxel(
+        vec3.fromValues(x, y, z),
+        chunkController.size,
+        chunkController.height,
+        chunkController.bedrock
+      );
+      if (vox && chunkController.chunks[chunkController.chunkKey(vox.chunk.x, vox.chunk.y)]) {
+        intersections.push({
+          location: vox,
+          face: vec3.fromValues(face[0], face[1], face[2]),
+        });
       }
     } while (vec3.dist(this.origin, vec3.fromValues(x, y, z)) <= length);
 
     return intersections;
   }
-
-  intersectBox(box: Box) {}
 
   /**
    * Finds the smallest positive t such that s+t*ds is an integer
@@ -147,4 +142,6 @@ export default class Raycaster {
   private mod(value: number, modulus: number) {
     return ((value % modulus) + modulus) % modulus;
   }
+
+  intersectBox(box: Box) {}
 }
