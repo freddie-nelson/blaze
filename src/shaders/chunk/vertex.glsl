@@ -30,14 +30,25 @@ void main() {
   // vNormal: 1 = top, 0.8 = left/right, 0.6 = front/back, 0.4 = bottom
   highp vec2 texCoord;
   if (vNormal == 0.4f) {
-    texCoord.x = 2.0f/3.0f;
+    texCoord.x = 2.0f/3.0f + 0.001;
   } else if (vNormal <= 0.8f) {
-    texCoord.x = 1.0f/3.0f;
+    texCoord.x = 1.0f/3.0f + 0.001;
   }
-  texCoord.x += texCoords[uv].x/3.0f;
+
+  float xOff = texCoords[uv].x/3.0f;
+  if (texCoords[uv].x == 1.0f) {
+    xOff -= 0.002;
+  }
+
+  texCoord.x += xOff;
 
   float tileSize = 1.0f / uNumOfTiles;
-  texCoord.y = tileSize * tileId + texCoords[uv].y * tileSize;
+  float yOff = texCoords[uv].y * tileSize;
+  if (texCoords[uv].y == 1.0f) {
+    yOff -= 0.002;
+  }
+
+  texCoord.y = tileSize * tileId + 0.001 + yOff;
 
   vTexCoord = texCoord;
 
