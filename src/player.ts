@@ -22,6 +22,7 @@ export interface PlayerOptions {
     applyFriction?: boolean;
     applyGravity?: boolean;
     normalizeMovement?: boolean;
+    preserveMomentumDirection?: boolean;
 
     walkForce?: number;
     sprintVelocityMultiplier?: number;
@@ -51,6 +52,7 @@ const defaultOpts: PlayerOptions = {
     applyFriction: true,
     applyGravity: true,
     normalizeMovement: true,
+    preserveMomentumDirection: false,
 
     walkForce: 5,
     sprintVelocityMultiplier: 1.5,
@@ -71,6 +73,7 @@ export default class Player extends Object3D {
 
   // movement
   velocity = vec3.fromValues(0, 0, 0);
+  lastRotation = this.getRotation();
 
   // camera
   camera: Camera;
@@ -100,7 +103,7 @@ export default class Player extends Object3D {
     const opts = this.options;
 
     // update rotation
-    this.camera.update();
+    this.lastRotation = vec3.clone(this.getRotation());
     this.plControls.update();
 
     // block picking
@@ -114,7 +117,8 @@ export default class Player extends Object3D {
       if (opts.movement?.applyFriction) this.applyFriction(delta, hasMoved);
     }
 
-    // update position
+    // update camera and position
+    this.camera.update();
     this.calcNewPosition(delta);
   }
 
@@ -130,6 +134,12 @@ export default class Player extends Object3D {
 
     let acceleration = opts.acceleration;
     let maxVelocity = vec3.clone(opts.maxVelocity);
+
+    // preserve momentum direction
+    if (opts.preserveMomentumDirection) {
+      const rotationYDiff = this.getRotation()[1] - this.lastRotation[1];
+      vec3.rotateY(this.velocity, this.velocity, vec3.create(), rotationYDiff);
+    }
 
     // sprint
     if (opts.canSprint && isKeyPressed("ShiftLeft")) {
@@ -171,6 +181,14 @@ export default class Player extends Object3D {
       vec3.normalize(this.velocity, this.velocity);
       vec3.scale(this.velocity, this.velocity, scale);
     }
+
+    // apply hard velocity limit
+    vec3.max(
+      this.velocity,
+      vec3.min(this.velocity, this.velocity, maxVelocity),
+      vec3.fromValues(-maxVelocity[0], -maxVelocity[1], -maxVelocity[2])
+    );
+    // console.log(this.velocity);
 
     return hasMoved;
   }

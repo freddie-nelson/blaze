@@ -25,6 +25,15 @@ export default class Camera extends Object3D {
     // this.frustum.update(this);
   }
 
+  /**
+   * Sets the fov of the camera.
+   *
+   * @param fov FOV angle of the camera in degrees
+   */
+  setFov(gl: WebGL2RenderingContext, fov: number) {
+    this.setProjectionMatrix(gl, (fov * Math.PI) / 180);
+  }
+
   setProjectionMatrix(
     gl: WebGL2RenderingContext,
     fov: number = (70 * Math.PI) / 180,
