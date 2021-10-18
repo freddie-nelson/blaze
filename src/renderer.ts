@@ -9,8 +9,8 @@ import { clear } from "./utils/gl";
  * @param canvas
  * @returns Webgl 2 rendering context for **canvas**
  */
-export function createRenderer(canvas: HTMLCanvasElement) {
-  const gl = canvas.getContext("webgl2");
+export function createRenderer(canvas: HTMLCanvasElement, opts?: WebGLContextAttributes) {
+  const gl = canvas.getContext("webgl2", opts);
   if (!gl) throw new Error("Your browser does not support WebGL 2.0");
 
   resizeRendererToCanvas(gl);

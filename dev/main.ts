@@ -19,6 +19,6 @@ blz.player.toggleBlockPicking(true, blz.chunkController, 5);
 blz.setTilesheet("tilesheet.png", 16, 22);
 blz.skyColor = new Color("skyblue");
 
-blz.toggleDebug();
+// blz.toggleDebug();
 
 blz.update();

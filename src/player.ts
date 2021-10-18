@@ -142,7 +142,6 @@ export default class Player extends Object3D {
       this.maxBlockPickingDist
     );
     const intersections = raycaster.intersectChunks(this.blockPickingChunks);
-    console.log(intersections);
   }
 
   // toggles

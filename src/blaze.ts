@@ -7,6 +7,14 @@ import { glMatrix } from "gl-matrix";
 import Tilesheet from "./tilesheet";
 import Color from "./utils/color";
 
+export interface BlazeOptions {
+  antialias: boolean;
+}
+
+const defaultOpts: BlazeOptions = {
+  antialias: false,
+};
+
 export default class Blaze {
   gl: WebGL2RenderingContext;
   private debug: Debug;
@@ -25,8 +33,8 @@ export default class Blaze {
    * @param canvas
    * @returns instance of blaze engine
    */
-  constructor(canvas: HTMLCanvasElement) {
-    const gl = createRenderer(canvas);
+  constructor(canvas: HTMLCanvasElement, opts: BlazeOptions = defaultOpts) {
+    const gl = createRenderer(canvas, { antialias: opts.antialias });
     this.gl = gl;
 
     this.gl.canvas.addEventListener("resize", () => {

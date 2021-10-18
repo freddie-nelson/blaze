@@ -27,17 +27,19 @@ void main() {
   float tileId = float((vertexData & 0x3FCu) >> 2u) - 1.0f;
   uint uv = (vertexData & 0x3u);
 
+  float padding = 0.0005f;
+
   // vNormal: 1 = top, 0.8 = left/right, 0.6 = front/back, 0.4 = bottom
   highp vec2 texCoord;
   if (vNormal == 0.4f) {
-    texCoord.x = 2.0f/3.0f + 0.001;
+    texCoord.x = 2.0f/3.0f + padding;
   } else if (vNormal <= 0.8f) {
-    texCoord.x = 1.0f/3.0f + 0.001;
+    texCoord.x = 1.0f/3.0f + padding;
   }
 
   float xOff = texCoords[uv].x/3.0f;
   if (texCoords[uv].x == 1.0f) {
-    xOff -= 0.002;
+    xOff -= padding * 2.0f;
   }
 
   texCoord.x += xOff;
@@ -45,10 +47,10 @@ void main() {
   float tileSize = 1.0f / uNumOfTiles;
   float yOff = texCoords[uv].y * tileSize;
   if (texCoords[uv].y == 1.0f) {
-    yOff -= 0.002;
+    yOff -= padding * 2.0f;
   }
 
-  texCoord.y = tileSize * tileId + 0.001 + yOff;
+  texCoord.y = tileSize * tileId + padding + yOff;
 
   vTexCoord = texCoord;
 
