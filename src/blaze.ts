@@ -41,7 +41,6 @@ export default class Blaze {
       resizeRendererToCanvas(gl);
       if (this.player) {
         this.player.camera.setProjectionMatrix(gl);
-        this.player.camera.frustum.update(this.player.camera);
       }
     });
 

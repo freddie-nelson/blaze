@@ -7,12 +7,19 @@ import Object3D from "./object3d";
 import Raycaster from "./physics/raycaster/raycaster";
 import PointerLockControls from "./pointerLockControls";
 import { mergeDeep } from "./utils/objects";
+import { VoxelLocation } from "./voxel";
+
+export interface BlockIntersection {
+  location: VoxelLocation;
+  face: vec3;
+}
 
 export interface PlayerOptions {
   blockPicking?: {
     enable?: boolean;
     maxDist?: number;
     chunks?: ChunkController;
+    cb?: (intersections?: BlockIntersection[]) => void;
   };
   movement?: {
     canMove?: boolean;
@@ -42,6 +49,7 @@ const defaultOpts: PlayerOptions = {
     enable: false,
     maxDist: 5,
     chunks: undefined,
+    cb: undefined,
   },
 
   movement: {
@@ -87,7 +95,6 @@ export default class Player extends Object3D {
 
     // right most value wins key collisions
     this.options = mergeDeep(defaultOpts, opts);
-    console.log(this.options);
 
     this.setPosition(vec3.fromValues(0, this.height / 2, 0));
 
@@ -223,29 +230,32 @@ export default class Player extends Object3D {
   }
 
   private pickBlock() {
-    if (!isMouseDown(MOUSE.LEFT)) return;
-
     const opts = this.options.blockPicking;
 
     const raycaster = new Raycaster(this.camera.getPosition(), this.camera.direction, opts.maxDist);
 
     const intersections = raycaster.intersectChunks(opts.chunks);
-    // console.log(intersections);
+    if (opts.cb) opts.cb(intersections);
   }
 
-  // toggles
-  toggleBlockPicking(enable: boolean, chunkController?: ChunkController, maxBlockPickingDist = 5) {
+  enableBlockPicking(
+    chunkController: ChunkController,
+    maxBlockPickingDist: number,
+    cb?: (intersection: BlockIntersection[]) => void
+  ) {
     const opts = this.options.blockPicking;
 
-    opts.enable = enable;
+    opts.enable = true;
+    opts.chunks = chunkController;
+    opts.maxDist = maxBlockPickingDist;
+    opts.cb = cb;
+  }
 
-    if (enable) {
-      if (!chunkController)
-        throw new Error("Player: Chunk controller must be provided when enabling block picking.");
+  disableBlockPicking() {
+    const opts = this.options.blockPicking;
 
-      opts.chunks = chunkController;
-      opts.maxDist = maxBlockPickingDist;
-    }
+    opts.enable = false;
+    opts.chunks = undefined;
   }
 
   getPosition(): vec3 {

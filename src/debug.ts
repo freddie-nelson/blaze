@@ -41,6 +41,7 @@ export default class Debug {
         : (this.blz.chunkController.drawMode = WebGL2RenderingContext.TRIANGLES)
     );
     this.reloadChunks = this.createButton("Reload Chunks", () => (this.blz.chunkController.geometry = {}));
+    this.reloadChunks.id = "reload-btn";
   }
 
   update(delta: number) {

@@ -293,6 +293,23 @@ export default class ChunkController {
     }
   }
 
+  /**
+   * Forces the controller to regenerate a chunk's geometry
+   *
+   * @param chunkLocation Position of chunk to refresh
+   * @param refreshNeighbours Boolean representing wether the chunks neighbours should also be refreshed
+   */
+  refreshChunk({ x, y }: { x: number; y: number }, refreshNeighbours = false) {
+    delete this.geometry[this.chunkKey(x, y)];
+
+    if (refreshNeighbours) {
+      delete this.geometry[this.chunkKey(x - 1, y)];
+      delete this.geometry[this.chunkKey(x + 1, y)];
+      delete this.geometry[this.chunkKey(x, y - 1)];
+      delete this.geometry[this.chunkKey(x, y + 1)];
+    }
+  }
+
   getChunkNeighbours({ x, y }: { x: number; y: number }) {
     const n = <Neighbours<Uint8Array>>{
       left: this.chunks[this.chunkKey(x - 1, y)],
