@@ -179,7 +179,15 @@ export default class ChunkController {
     for (let i = 0; i < this.maxChunksPerTick && this.queue.length !== 0; i++) {
       const pos = this.queue.shift();
       const key = this.chunkKey(pos.x, pos.y);
-      if (this.chunks[key]) continue;
+
+      if (
+        this.chunks[key] ||
+        pos.x <= this.chunkOffset * -1 ||
+        pos.x > this.chunkOffset ||
+        pos.y <= this.chunkOffset * -1 ||
+        pos.y > this.chunkOffset
+      )
+        continue;
 
       const c = this.chunkGenerator.generateChunk(pos);
       this.chunks[key] = c;

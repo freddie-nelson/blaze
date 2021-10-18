@@ -1,5 +1,5 @@
 import { createRenderer, resizeRendererToCanvas } from "./renderer";
-import Player from "./player";
+import Player, { PlayerOptions } from "./player";
 import { clear } from "./utils/gl";
 import ChunkController, { ChunkControllerOptions } from "./chunk/controller";
 import Debug from "./debug";
@@ -37,9 +37,12 @@ export default class Blaze {
     const gl = createRenderer(canvas, { antialias: opts.antialias });
     this.gl = gl;
 
-    this.gl.canvas.addEventListener("resize", () => {
+    window.addEventListener("resize", () => {
       resizeRendererToCanvas(gl);
-      if (this.player) this.player.camera.setProjectionMatrix(gl);
+      if (this.player) {
+        this.player.camera.setProjectionMatrix(gl);
+        this.player.camera.frustum.update(this.player.camera);
+      }
     });
 
     glMatrix.setMatrixArrayType(Array);
@@ -71,8 +74,8 @@ export default class Blaze {
     this.updateHooks.splice(i, 1);
   }
 
-  initPlayer() {
-    this.player = new Player(this.gl);
+  initPlayer(opts?: PlayerOptions) {
+    this.player = new Player(this.gl, opts);
   }
 
   initChunkController(opts: ChunkControllerOptions) {

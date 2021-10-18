@@ -6,34 +6,85 @@ import { isMouseDown, MOUSE } from "./mouse";
 import Object3D from "./object3d";
 import Raycaster from "./physics/raycaster/raycaster";
 import PointerLockControls from "./pointerLockControls";
+import { mergeDeep } from "./utils/objects";
+
+export interface PlayerOptions {
+  blockPicking?: {
+    enable?: boolean;
+    maxDist?: number;
+    chunks?: ChunkController;
+  };
+  movement?: {
+    canMove?: boolean;
+    canWalk?: boolean;
+    canSprint?: boolean;
+    canJump?: boolean;
+    applyFriction?: boolean;
+    applyGravity?: boolean;
+    normalizeMovement?: boolean;
+
+    walkForce?: number;
+    sprintVelocityMultiplier?: number;
+    jumpForce?: number;
+    acceleration?: number;
+    sprintAccelerationMultiplier?: number;
+
+    friction?: number;
+    weight?: number;
+
+    maxVelocity?: vec3;
+  };
+}
+
+const defaultOpts: PlayerOptions = {
+  blockPicking: {
+    enable: false,
+    maxDist: 5,
+    chunks: undefined,
+  },
+
+  movement: {
+    canMove: true,
+    canWalk: true,
+    canSprint: true,
+    canJump: true,
+    applyFriction: true,
+    applyGravity: true,
+    normalizeMovement: true,
+
+    walkForce: 5,
+    sprintVelocityMultiplier: 1.5,
+    jumpForce: 6.8,
+    acceleration: 80,
+    sprintAccelerationMultiplier: 1.2,
+
+    friction: 25,
+    weight: 20,
+
+    maxVelocity: vec3.fromValues(5, 20, 5),
+  },
+};
 
 export default class Player extends Object3D {
   height = 1.8;
   width = 0.8;
 
   // movement
-  walkForce = 5;
-  jumpForce = 6.8;
-  acceleration = 80;
-
-  friction = 25;
-  weight = 20;
-
   velocity = vec3.fromValues(0, 0, 0);
-  maxVelocity = vec3.fromValues(5, 20, 5);
 
   // camera
   camera: Camera;
   cameraPos = vec3.fromValues(0, this.height, 0);
   plControls: PointerLockControls;
 
-  // block picking
-  private blockPickingChunks: ChunkController;
-  private enableBlockPicking = false;
-  private maxBlockPickingDist = 5;
+  options: PlayerOptions;
 
-  constructor(gl: WebGL2RenderingContext) {
+  constructor(gl: WebGL2RenderingContext, opts: PlayerOptions = defaultOpts) {
     super();
+
+    // right most value wins key collisions
+    this.options = mergeDeep(defaultOpts, opts);
+    console.log(this.options);
 
     this.setPosition(vec3.fromValues(0, this.height / 2, 0));
 
@@ -46,22 +97,30 @@ export default class Player extends Object3D {
   }
 
   update(delta: number) {
+    const opts = this.options;
+
     // update rotation
-    this.plControls.update();
     this.camera.update();
+    this.plControls.update();
 
     // block picking
-    if (this.enableBlockPicking) this.pickBlock();
+    if (opts.blockPicking?.enable) this.pickBlock();
 
     // player movement
-    const hasMoved = this.calcNewVelocity(delta);
-    this.applyFriction(delta, hasMoved);
+    if (opts.movement?.canMove) {
+      let hasMoved = { l: false, r: false, f: false, b: false };
+      if (opts.movement?.canWalk) hasMoved = this.calcNewVelocity(delta);
+
+      if (opts.movement?.applyFriction) this.applyFriction(delta, hasMoved);
+    }
 
     // update position
     this.calcNewPosition(delta);
   }
 
   private calcNewVelocity(delta: number) {
+    const opts = this.options.movement;
+
     const hasMoved = {
       l: false,
       r: false,
@@ -69,13 +128,17 @@ export default class Player extends Object3D {
       b: false,
     };
 
-    let acceleration = this.acceleration;
-    let maxVelocity = vec3.clone(this.maxVelocity);
+    let acceleration = opts.acceleration;
+    let maxVelocity = vec3.clone(opts.maxVelocity);
 
     // sprint
-    if (isKeyPressed("ShiftLeft")) {
-      acceleration *= 1.2;
-      vec3.multiply(maxVelocity, maxVelocity, vec3.fromValues(1.5, 1, 1.5));
+    if (opts.canSprint && isKeyPressed("ShiftLeft")) {
+      acceleration *= opts.sprintAccelerationMultiplier;
+      vec3.multiply(
+        maxVelocity,
+        maxVelocity,
+        vec3.fromValues(opts.sprintVelocityMultiplier, 1, opts.sprintVelocityMultiplier)
+      );
     }
 
     if (isKeyPressed("KeyW")) {
@@ -103,11 +166,19 @@ export default class Player extends Object3D {
         this.velocity[0] = maxVelocity[0] * Math.sign(this.velocity[0]);
     }
 
+    if (opts.normalizeMovement && (hasMoved.r || hasMoved.l) && (hasMoved.f || hasMoved.b)) {
+      const scale = Math.min(vec3.len(this.velocity), Math.max(maxVelocity[0], maxVelocity[2]));
+      vec3.normalize(this.velocity, this.velocity);
+      vec3.scale(this.velocity, this.velocity, scale);
+    }
+
     return hasMoved;
   }
 
   private applyFriction(delta: number, hasMoved: { l: boolean; r: boolean; f: boolean; b: boolean }) {
-    const friction = this.friction;
+    const opts = this.options.movement;
+
+    const friction = opts.friction;
     const sign = {
       x: Math.sign(this.velocity[0]),
       y: Math.sign(this.velocity[1]),
@@ -136,24 +207,26 @@ export default class Player extends Object3D {
   private pickBlock() {
     if (!isMouseDown(MOUSE.LEFT)) return;
 
-    const raycaster = new Raycaster(
-      this.camera.getPosition(),
-      this.camera.direction,
-      this.maxBlockPickingDist
-    );
-    const intersections = raycaster.intersectChunks(this.blockPickingChunks);
+    const opts = this.options.blockPicking;
+
+    const raycaster = new Raycaster(this.camera.getPosition(), this.camera.direction, opts.maxDist);
+
+    const intersections = raycaster.intersectChunks(opts.chunks);
+    // console.log(intersections);
   }
 
   // toggles
   toggleBlockPicking(enable: boolean, chunkController?: ChunkController, maxBlockPickingDist = 5) {
-    this.enableBlockPicking = enable;
+    const opts = this.options.blockPicking;
+
+    opts.enable = enable;
 
     if (enable) {
       if (!chunkController)
         throw new Error("Player: Chunk controller must be provided when enabling block picking.");
 
-      this.blockPickingChunks = chunkController;
-      this.maxBlockPickingDist = maxBlockPickingDist;
+      opts.chunks = chunkController;
+      opts.maxDist = maxBlockPickingDist;
     }
   }
 
