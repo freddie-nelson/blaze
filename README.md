@@ -1,6 +1,6 @@
 # Blaze
 
-A basic voxel engine in TypeScript and WebGL
+A fast and simple WebGL 2 voxel game engine written in TypeScript
 
 # Goals
 

@@ -2,12 +2,15 @@
   "compilerOptions": {
     "typeRoots": ["@types", "./node_modules/@types"],
     "module": "commonjs",
-    "target": "es6",
+    "target": "es5",
     "lib": ["es2015", "DOM"],
     "noImplicitAny": true,
     "rootDir": "./",
+    "outDir": "lib",
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "declaration": true,
+    "sourceMap": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

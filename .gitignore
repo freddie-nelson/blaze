@@ -1,7 +1,8 @@
 .VSCodeCounter
 node_modules
 yarn-error.log
-build
-dist
+lib
+lib-esm
+_bundles
 dev/main.d.ts
 dev/main.js

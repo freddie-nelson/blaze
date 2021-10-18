@@ -1,5 +1,4 @@
 const path = require("path");
-const webpack = require("webpack");
 
 module.exports = {
   target: "web",
@@ -9,13 +8,13 @@ module.exports = {
     "blaze.min": "./src/blaze.ts",
   },
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "_bundles"),
     filename: "[name].js",
     library: "Blaze",
     libraryTarget: "umd",
-    globalObject: "this",
     umdNamedDefine: true,
   },
+  devtool: "source-map",
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
     modules: ["node_modules"],

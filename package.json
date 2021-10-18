@@ -1,15 +1,41 @@
 {
-  "name": "scuffed-block-game",
-  "version": "1.0.0",
-  "description": "Voxel game in threejs",
-  "main": "dist/blaze.js",
-  "types": "dist/blaze.d.ts",
+  "name": "blaze-engine",
+  "version": "0.0.1",
+  "author": "Freddie Nelson <freddie0208@hotmail.com> (https://freddienelson.co.uk)",
+  "description": "A fast and simple WebGL 2 voxel game engine written in TypeScript",
+  "keywords": [
+    "webgl",
+    "webgl2",
+    "voxel",
+    "game",
+    "gamedev",
+    "3d",
+    "game-engine",
+    "engine",
+    "typescript"
+  ],
+  "homepage": "https://github.com/freddie-nelson/blaze",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freddie-nelson/blaze"
+  },
+  "bugs": {
+    "email": "freddie0208@hotmail.com",
+    "url": "https://github.com/freddie-nelson/blaze/issues"
+  },
+  "main": "lib/blaze.js",
   "files": [
-    "dist"
+    "lib",
+    "lib-esm",
+    "_bundles",
+    "README.md",
+    "LICENSE",
+    "package.json"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
+    "build": "npm run clean && tsc && tsc -m es6 --outDir lib-esm && webpack",
+    "clean": "shx rm -rf _bundles lib lib-esm",
     "dev": "webpack watch --config dev/webpack.config.js"
   },
   "dependencies": {},
@@ -18,6 +44,7 @@
     "live-server": "^1.2.1",
     "nodemon": "^2.0.13",
     "raw-loader": "^4.0.2",
+    "shx": "^0.3.3",
     "ts-loader": "^8.1.0",
     "ts-node": "^10.2.1",
     "tsc": "^2.0.3",
@@ -25,6 +52,8 @@
     "webpack": "^5.33.2",
     "webpack-cli": "^4.6.0"
   },
-  "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  }
 }
