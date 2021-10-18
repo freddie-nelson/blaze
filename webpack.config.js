@@ -5,16 +5,17 @@ module.exports = {
   mode: "production",
   entry: {
     blaze: "./src/blaze.ts",
-    "blaze.min": "./src/blaze.ts",
   },
   output: {
-    path: path.resolve(__dirname, "_bundles"),
+    path: path.resolve(__dirname, "lib/bundle"),
     filename: "[name].js",
-    library: "Blaze",
-    libraryTarget: "umd",
+    library: {
+      name: "Blaze",
+      type: "umd",
+      export: "default",
+    },
     umdNamedDefine: true,
   },
-  devtool: "source-map",
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
     modules: ["node_modules"],

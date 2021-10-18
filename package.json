@@ -34,8 +34,8 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run clean && tsc && tsc -m es6 --outDir lib-esm && webpack",
-    "clean": "shx rm -rf _bundles lib lib-esm",
+    "build": "npm run clean && tsc && webpack",
+    "clean": "shx rm -rf lib",
     "dev": "webpack watch --config dev/webpack.config.js"
   },
   "dependencies": {},

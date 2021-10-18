@@ -2,7 +2,5 @@
 node_modules
 yarn-error.log
 lib
-lib-esm
-_bundles
 dev/main.d.ts
 dev/main.js
