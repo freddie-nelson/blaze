@@ -3,6 +3,8 @@ import Blaze from "./blaze";
 export default class Debug {
   blz: Blaze;
 
+  show = true;
+
   // elements
   container: HTMLDivElement;
   fps: HTMLParagraphElement;
@@ -16,6 +18,7 @@ export default class Debug {
   lineMode: HTMLInputElement;
 
   reloadChunks: HTMLButtonElement;
+  showBtn: HTMLButtonElement;
 
   constructor(blz: Blaze) {
     this.blz = blz;
@@ -42,9 +45,29 @@ export default class Debug {
     );
     this.reloadChunks = this.createButton("Reload Chunks", () => (this.blz.chunkController.geometry = {}));
     this.reloadChunks.id = "reload-btn";
+    this.showBtn = this.createButton("Show/Hide Menu", () => {
+      this.show = !this.show;
+
+      const children = Array.from(this.container.children);
+      if (!this.show) {
+        children.forEach((element: HTMLElement) => {
+          if (element === this.showBtn) return;
+
+          element.style.display = "none";
+        });
+      } else {
+        children.forEach((element: HTMLElement) => {
+          if (element === this.showBtn) return;
+
+          element.style.display = "block";
+        });
+      }
+    });
   }
 
   update(delta: number) {
+    if (!this.show) return;
+
     const player = this.blz.player;
     const position = player.getPosition();
     const chunk = this.blz.chunkController.getChunk(position);

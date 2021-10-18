@@ -1,14 +1,16 @@
 const path = require("path");
+const webpack = require("webpack");
 
 module.exports = {
   target: "web",
   mode: "production",
   entry: {
     blaze: "./src/blaze.ts",
+    "blaze.min": "./src/blaze.ts",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "blaze.js",
+    filename: "[name].js",
     library: "Blaze",
     libraryTarget: "umd",
     globalObject: "this",

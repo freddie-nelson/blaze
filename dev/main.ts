@@ -1,8 +1,7 @@
-import { vec3 } from "gl-matrix";
 import Blaze from "../src/blaze";
-import { createBuildAndBreakHandler } from "../src/dropins/player/blockpicking";
+import { createBuildAndBreakHandler } from "../src/dropins/player/blockPicking";
 import { addKeyListener } from "../src/keyboard";
-import { isMouseDown, MOUSE } from "../src/mouse";
+import { isMouseDown, Mouse } from "../src/mouse";
 import Color from "../src/utils/color";
 
 const blz = new Blaze(<HTMLCanvasElement>document.getElementById("canvas"));
@@ -25,8 +24,8 @@ blz.player.enableBlockPicking(
     buildDelay: 200,
     breakDelay: 200,
 
-    canBreak: () => isMouseDown(MOUSE.LEFT),
-    canBuild: () => isMouseDown(MOUSE.RIGHT),
+    canBreak: () => isMouseDown(Mouse.LEFT),
+    canBuild: () => isMouseDown(Mouse.RIGHT),
 
     onBreak: (i, chunk) => (chunk[i] = 0),
     onBuild: (i, chunk) => (chunk[i] = 1),

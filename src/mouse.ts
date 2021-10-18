@@ -1,4 +1,4 @@
-export enum MOUSE {
+export enum Mouse {
   LEFT = 0,
   MIDDLE = 1,
   RIGHT = 2,
@@ -19,11 +19,11 @@ document.body.addEventListener("mouseup", (e) => {
   listeners[e.button]?.forEach((cb) => cb(false));
 });
 
-export function isMouseDown(button = MOUSE.LEFT) {
+export function isMouseDown(button = Mouse.LEFT) {
   return !!buttons[button];
 }
 
-export function addMouseListener(button: MOUSE, cb: cb) {
+export function addMouseListener(button: Mouse, cb: cb) {
   if (listeners[button]) {
     listeners[button].push(cb);
   } else {
@@ -31,7 +31,7 @@ export function addMouseListener(button: MOUSE, cb: cb) {
   }
 }
 
-export function removeMouseListener(button: MOUSE, cb: cb) {
+export function removeMouseListener(button: Mouse, cb: cb) {
   if (listeners[button]) {
     for (let i = 0; i < listeners[button].length; i++) {
       if (cb === listeners[button][i]) {

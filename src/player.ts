@@ -2,7 +2,6 @@ import { vec3 } from "gl-matrix";
 import Camera from "./camera";
 import ChunkController from "./chunk/controller";
 import { isKeyPressed } from "./keyboard";
-import { isMouseDown, MOUSE } from "./mouse";
 import Object3D from "./object3d";
 import Raycaster from "./physics/raycaster/raycaster";
 import PointerLockControls from "./pointerLockControls";
