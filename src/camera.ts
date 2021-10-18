@@ -48,6 +48,7 @@ export default class Camera extends Object3D {
     this.frustum.resize(this.fov, near, far, this.aspect);
 
     mat4.perspective(this.projectionMatrix, this.fov, this.aspect, this.near, this.far);
+    this.frustum.update(this);
   }
 
   getProjectionMatrix() {
