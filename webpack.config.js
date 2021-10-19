@@ -1,6 +1,5 @@
 const { exec } = require("child_process");
 const path = require("path");
-const WorkerPlugin = require("worker-plugin");
 
 module.exports = {
   target: "web",
@@ -10,12 +9,14 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "lib/bundle"),
+    publicPath: "/",
     filename: "[name].js",
     library: {
       name: "Blaze",
       type: "umd",
       export: "default",
     },
+    publicPath: "/",
     umdNamedDefine: true,
   },
   resolve: {
@@ -23,7 +24,6 @@ module.exports = {
     modules: ["node_modules"],
   },
   plugins: [
-    new WorkerPlugin(),
     {
       apply: (compiler) => {
         compiler.hooks.afterCompile.tap("ReplaceShadersPlugin", () => {

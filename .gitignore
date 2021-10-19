@@ -3,4 +3,4 @@ node_modules
 yarn-error.log
 lib
 dev/main.d.ts
-dev/main.js
+dev/*.js
