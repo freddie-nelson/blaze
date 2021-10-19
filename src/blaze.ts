@@ -6,6 +6,7 @@ import Debug from "./debug";
 import { glMatrix } from "gl-matrix";
 import Tilesheet from "./tilesheet";
 import Color from "./utils/color";
+import ThreadPool from "./threading/threadPool";
 
 export interface BlazeOptions {
   antialias: boolean;
@@ -23,6 +24,7 @@ export default class Blaze {
   skyColor = new Color("#000");
 
   chunkController: ChunkController;
+  threadManager = new ThreadPool();
 
   lastUpdateTime = performance.now();
   updateHooks: ((delta?: number) => void)[] = [];

@@ -19,6 +19,7 @@ module.exports = {
     publicPath: "/",
     umdNamedDefine: true,
   },
+  devtool: "source-map",
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
     modules: ["node_modules"],

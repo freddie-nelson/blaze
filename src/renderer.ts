@@ -25,7 +25,7 @@ export function createRenderer(canvas: HTMLCanvasElement, opts?: WebGLContextAtt
 }
 
 /**
- * Resizes the canvas attached to **gl** to the window size and updates the **gl** viewport
+ * Resizes the canvas attached to `gl` to the window size and updates the viewport
  *
  * @param gl
  */

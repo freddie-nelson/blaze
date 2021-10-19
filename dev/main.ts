@@ -1,8 +1,8 @@
-import Blaze from "../src/blaze";
-import { createBuildAndBreakHandler } from "../src/dropins/player/blockPicking";
-import { addKeyListener } from "../src/keyboard";
-import { isMouseDown, Mouse } from "../src/mouse";
-import Color from "../src/utils/color";
+import Blaze from "../lib/src/blaze";
+import { createBuildAndBreakHandler } from "../lib/src/dropins/player/blockPicking";
+import { addKeyListener } from "../lib/src/keyboard";
+import { isMouseDown, Mouse } from "../lib/src/mouse";
+import Color from "../lib/src/utils/color";
 
 const blz = new Blaze(<HTMLCanvasElement>document.getElementById("canvas"));
 blz.initPlayer();
@@ -10,7 +10,7 @@ blz.initChunkController({
   gl: blz.gl,
   player: blz.player,
   worldSize: 10000,
-  renderDist: 16,
+  renderDist: 12,
   maxChunksPerTick: 1,
   bedrock: -127,
   chunkSize: 8,
