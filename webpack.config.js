@@ -1,4 +1,6 @@
+const { exec } = require("child_process");
 const path = require("path");
+const WorkerPlugin = require("worker-plugin");
 
 module.exports = {
   target: "web",
@@ -20,12 +22,28 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
     modules: ["node_modules"],
   },
+  plugins: [
+    new WorkerPlugin(),
+    {
+      apply: (compiler) => {
+        compiler.hooks.afterCompile.tap("ReplaceShadersPlugin", () => {
+          console.log("Replacing shader imports...");
+          exec("node replaceShaders.js", (err, out) => {
+            err ? console.error(err) : console.log(out);
+          });
+        });
+      },
+    },
+  ],
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        loader: "ts-loader",
         exclude: /node_modules/,
+        options: {
+          projectReferences: true,
+        },
       },
       {
         test: /\.glsl$/,

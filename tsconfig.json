@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "typeRoots": ["@types", "./node_modules/@types"],
-    "module": "commonjs",
+    "module": "es2020",
     "target": "es6",
     "lib": ["es2015", "DOM"],
     "noImplicitAny": true,
