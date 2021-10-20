@@ -30,7 +30,9 @@ export default class Thread {
 
   constructor(id: string) {
     this.id = id;
+
     this.setupWorker();
+    this.clean();
   }
 
   private setupWorker() {
