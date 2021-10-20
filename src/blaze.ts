@@ -24,7 +24,7 @@ export default class Blaze {
   skyColor = new Color("#000");
 
   chunkController: ChunkController;
-  threadManager = new ThreadPool();
+  threadPool = new ThreadPool();
 
   lastUpdateTime = performance.now();
   updateHooks: ((delta?: number) => void)[] = [];
@@ -80,7 +80,7 @@ export default class Blaze {
   }
 
   initChunkController(opts: ChunkControllerOptions) {
-    this.chunkController = new ChunkController(opts);
+    this.chunkController = new ChunkController(opts, this.threadPool);
   }
 
   setTilesheet(path: string, tileSize: number, numOfTiles: number) {

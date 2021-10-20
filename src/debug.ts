@@ -7,13 +7,13 @@ export default class Debug {
 
   // elements
   container: HTMLDivElement;
-  fps: HTMLParagraphElement;
-  coords: HTMLParagraphElement;
-  chunk: HTMLParagraphElement;
-  chunks: HTMLParagraphElement;
-  queued: HTMLParagraphElement;
-  camera: HTMLParagraphElement;
-  frustum: HTMLParagraphElement;
+  fps: HTMLSpanElement;
+  coords: HTMLSpanElement;
+  chunk: HTMLSpanElement;
+  chunks: HTMLSpanElement;
+  queued: HTMLSpanElement;
+  camera: HTMLSpanElement;
+  frustum: HTMLSpanElement;
 
   lineMode: HTMLInputElement;
 
@@ -26,7 +26,7 @@ export default class Debug {
     const container = document.createElement("div");
     container.setAttribute(
       "style",
-      "position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; background-color: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 4px;"
+      "position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; background-color: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 4px; z-index: 2;"
     );
     document.body.appendChild(container);
     this.container = container;
@@ -43,7 +43,10 @@ export default class Debug {
         ? (this.blz.chunkController.drawMode = WebGL2RenderingContext.LINES)
         : (this.blz.chunkController.drawMode = WebGL2RenderingContext.TRIANGLES)
     );
-    this.reloadChunks = this.createButton("Reload Chunks", () => (this.blz.chunkController.geometry = {}));
+    this.reloadChunks = this.createButton("Reload Chunks", () => {
+      this.blz.chunkController.geometry = {};
+      this.blz.chunkController.pendingGeometry = {};
+    });
     this.reloadChunks.id = "reload-btn";
     this.showBtn = this.createButton("Show/Hide Menu", () => {
       this.show = !this.show;
@@ -74,9 +77,9 @@ export default class Debug {
     chunk.x -= this.blz.chunkController.chunkOffset;
     chunk.y -= this.blz.chunkController.chunkOffset;
 
-    this.fps.innerText = `FPS: ${(1 / delta).toFixed(1)}`;
+    this.fps.textContent = `FPS: ${(1 / delta).toFixed(1)}`;
 
-    this.coords.innerText = `Position { x: ${position[0].toFixed(1)}, y: ${position[1].toFixed(
+    this.coords.textContent = `Position { x: ${position[0].toFixed(1)}, y: ${position[1].toFixed(
       1
     )}, z: ${position[2].toFixed(1)} }`;
 
@@ -84,22 +87,22 @@ export default class Debug {
     // const emptyNeighbours = Object.keys(neighbours).map((k) => {
     //   if (neighbours[k] && neighbours[k][0] === 0) return k;
     // });
-    // this.chunk.innerText = `Chunk { x: ${chunk.x}, y: ${chunk.y}, isEmpty: ${
+    // this.chunk.textContent = `Chunk { x: ${chunk.x}, y: ${chunk.y}, isEmpty: ${
     //   this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`] &&
     //   this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`][0] === 0
     // }, emptyNs: ${emptyNeighbours} }`;
-    this.chunk.innerText = `Chunk { x: ${chunk.x}, y: ${chunk.y} }`;
+    this.chunk.textContent = `Chunk { x: ${chunk.x}, y: ${chunk.y} }`;
 
-    this.chunks.innerText = `Chunks { loaded: ${
+    this.chunks.textContent = `Chunks { loaded: ${
       Object.keys(this.blz.chunkController.chunks).length
     }, drawn: ${this.blz.chunkController.drawn} }`;
 
-    this.queued.innerText = `Queued { render: ${this.blz.chunkController.renderQueue.length}, generation: ${this.blz.chunkController.queue.length} }`;
+    this.queued.textContent = `Queued { render: ${this.blz.chunkController.renderQueue.length}, generation: ${this.blz.chunkController.queue.length} }`;
 
-    this.camera.innerText = `Camera { yaw: ${((player.getRotation()[1] / Math.PI) * 180).toFixed(2)} }`;
+    this.camera.textContent = `Camera { yaw: ${((player.getRotation()[1] / Math.PI) * 180).toFixed(2)} }`;
 
     // const frustum = player.camera.frustum;
-    // this.frustum.innerText = `Frustum: { \n__${frustum.planeKeys
+    // this.frustum.textContent = `Frustum: { \n__${frustum.planeKeys
     //   .map((k) => {
     //     const plane = frustum.planes[k];
     //     return `${k[0]}: {${Object.keys(plane).reduce((acc, c) => {
@@ -116,8 +119,11 @@ export default class Debug {
   }
 
   private createText() {
-    const text = document.createElement("p");
-    text.setAttribute("style", "font-family: monospace; font-size: .8rem; color: white;  margin: 4px 0;");
+    const text = document.createElement("span");
+    text.setAttribute(
+      "style",
+      "font-family: monospace; font-size: .8rem; color: white; margin: 4px 0; width: 300px;"
+    );
     this.container.appendChild(text);
     return text;
   }
@@ -127,11 +133,11 @@ export default class Debug {
     box.type = "checkbox";
     box.addEventListener("input", (e) => cb((e.target as HTMLInputElement).checked));
     const p = this.createText();
+    p.textContent = text;
     p.style.display = "flex";
     p.style.alignItems = "center";
     p.style.marginTop = "-4px";
     box.style.marginLeft = "4px";
-    p.innerText = text;
     p.appendChild(box);
     this.container.appendChild(p);
     return box;

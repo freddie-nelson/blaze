@@ -9,6 +9,7 @@ import { mat4, vec2, vec3 } from "gl-matrix";
 import { Neighbours } from "../voxel";
 import Box from "../physics/box";
 import Tilesheet from "../tilesheet";
+import ThreadPool from "../threading/threadPool";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
@@ -28,7 +29,13 @@ export interface Limits {
   iterationsY: number;
 }
 
+export interface ChunkGeometry {
+  indices: Uint32Array;
+  vertices: Uint32Array;
+}
+
 export default class ChunkController {
+  threadPool: ThreadPool;
   chunkGenerator: ChunkGenerator;
   geometryGenerator: GeometryGenerator;
 
@@ -55,14 +62,16 @@ export default class ChunkController {
   maxChunksPerTick: number;
 
   chunks: { [index: string]: Uint8Array } = {};
-  geometry: { [index: string]: { indices: Uint32Array; vertices: Uint32Array } } = {};
+  geometry: { [index: string]: ChunkGeometry } = {};
+  pendingGeometry: { [index: string]: boolean } = {};
+  replaceGeometry: { [index: string]: boolean } = {};
   // buffers: { [index: string]: { indices: WebGLBuffer; vertices: WebGLBuffer } } = {};
   renderQueue: string[] = [];
   renderQueueMax: number;
   drawn = 0;
   drawMode = WebGL2RenderingContext.TRIANGLES;
 
-  constructor(opts: ChunkControllerOptions) {
+  constructor(opts: ChunkControllerOptions, threadPool?: ThreadPool) {
     // validation checks
     if (opts.chunkSize && (opts.chunkSize < 1 || opts.chunkSize > 15))
       throw new Error("Chunk Controller: chunk size must be between 1 and 15 inclusive.");
@@ -88,6 +97,13 @@ export default class ChunkController {
     this.geometryGenerator = new GeometryGenerator({
       chunkSize: this.size,
       chunkHeight: this.height,
+    });
+
+    this.threadPool = threadPool;
+    threadPool.everyThread({
+      task: "init-geometry-generator",
+      data: new Uint16Array([this.size, this.height]),
+      // cb: () => console.log("init-geometry-generator"),
     });
 
     this.setupShader(this.gl);
@@ -197,6 +213,13 @@ export default class ChunkController {
     return generated;
   }
 
+  /**
+   * Generates geometry for every chunk that requires it within the provided limits.
+   *
+   * Replacement geometry is always generated on the main thread.
+   *
+   * @param limits
+   */
   private generateGeometry(limits: Limits) {
     this.renderQueue = [];
 
@@ -205,14 +228,43 @@ export default class ChunkController {
         const pos = { x: x - this.chunkOffset, y: y - this.chunkOffset };
         const k = this.chunkKey(pos.x, pos.y);
 
-        if (!this.geometry[k]) {
+        if (!this.geometry[k] || this.replaceGeometry[k]) {
           const pos = this.chunkPos(k);
           const neighbours = this.getChunkNeighbours(pos);
 
-          if (neighbours.left && neighbours.right && neighbours.front && neighbours.back) {
+          if (this.replaceGeometry[k]) {
+            delete this.pendingGeometry[k];
+            delete this.replaceGeometry[k];
+
             this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
               this.geometryGenerator.generateChunkGeometry(this.chunks[k], neighbours)
             );
+          } else if (
+            !this.pendingGeometry[k] &&
+            neighbours.left &&
+            neighbours.right &&
+            neighbours.front &&
+            neighbours.back
+          ) {
+            if (this.threadPool) {
+              this.pendingGeometry[k] = true;
+
+              this.threadPool.requestThread({
+                task: "chunk-geometry",
+                data: { chunk: this.chunks[k], neighbours },
+                cb: (geometry: ChunkGeometry) => {
+                  // check if geometry was replaced while waiting
+                  if (this.pendingGeometry[k]) {
+                    this.geometry[k] = geometry;
+                    delete this.pendingGeometry[k];
+                  }
+                },
+              });
+            } else {
+              this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
+                this.geometryGenerator.generateChunkGeometry(this.chunks[k], neighbours)
+              );
+            }
           } else {
             continue;
           }
@@ -226,6 +278,9 @@ export default class ChunkController {
   private renderChunks() {
     this.drawn = 0;
     for (const k of this.renderQueue) {
+      // exit if geometry is still being generated on thread
+      if (this.pendingGeometry[k]) continue;
+
       const geo = this.geometry[k];
       const gl = this.gl;
 
@@ -294,19 +349,19 @@ export default class ChunkController {
   }
 
   /**
-   * Forces the controller to regenerate a chunk's geometry
+   * Tells the controller to regenerate a chunk's geometry
    *
    * @param chunkLocation Position of chunk to refresh
    * @param refreshNeighbours Boolean representing wether the chunks neighbours should also be refreshed
    */
   refreshChunk({ x, y }: { x: number; y: number }, refreshNeighbours = false) {
-    delete this.geometry[this.chunkKey(x, y)];
+    this.replaceGeometry[this.chunkKey(x, y)] = true;
 
     if (refreshNeighbours) {
-      delete this.geometry[this.chunkKey(x - 1, y)];
-      delete this.geometry[this.chunkKey(x + 1, y)];
-      delete this.geometry[this.chunkKey(x, y - 1)];
-      delete this.geometry[this.chunkKey(x, y + 1)];
+      this.replaceGeometry[this.chunkKey(x - 1, y)] = true;
+      this.replaceGeometry[this.chunkKey(x + 1, y)] = true;
+      this.replaceGeometry[this.chunkKey(x, y - 1)] = true;
+      this.replaceGeometry[this.chunkKey(x, y + 1)] = true;
     }
   }
 

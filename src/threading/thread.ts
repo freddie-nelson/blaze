@@ -1,21 +1,35 @@
 import { BLZ_Worker, WorkerMessage } from "./worker";
 
+export type ThreadTaskData =
+  | ArrayBuffer
+  | Uint8Array
+  | Uint16Array
+  | Uint32Array
+  | Float32Array
+  | Float64Array;
+
+export interface ThreadTaskDataObject {
+  [index: string]: ThreadTaskData | ThreadTaskData[] | ThreadTaskDataObject;
+}
+
 export interface ThreadTask {
-  task: "chunk-generation" | "chunk-geometry";
+  task: "chunk-generation" | "init-chunk-generator" | "chunk-geometry" | "init-geometry-generator";
   // priority: number;
-  data: ArrayBuffer | Uint8Array | Uint16Array | Uint32Array | Float32Array | Float64Array;
+  data: ThreadTaskData | ThreadTaskData[] | ThreadTaskDataObject;
+  cb?: (data?: any) => void;
 }
 
 export default class Thread {
   private worker: BLZ_Worker;
   private inUse = false;
+  private currentTask: ThreadTask;
   private queue: ThreadTask[] = [];
-  private maxQueueSize = 5; // maximum size a thread's queue can be before main thread must be used
+  private maxQueueSize = 10; // maximum size a thread's queue can be before main thread must be used
+  private id: string;
+  private cleanRate = 100; // rate at which the queue is checked for hanging tasks that need to be executed in ms
 
-  private lastTryTime = 0;
-  private retryTimeout = 100;
-
-  constructor() {
+  constructor(id: string) {
+    this.id = id;
     this.setupWorker();
   }
 
@@ -25,14 +39,31 @@ export default class Thread {
       { type: "module" }
     );
     this.worker.onmessage = (e) => this.handleMessage(e.data);
-    this.worker.postMessage({ task: "get-status" });
+    this.worker.onerror = (e) => this.log(e);
+    this.worker.onmessageerror = (e) => this.log(e);
   }
 
   private handleMessage(msg: WorkerMessage) {
-    console.log(msg);
+    // this.log(msg);
+    switch (msg.task) {
+      case "completed":
+        if (this.currentTask.cb) this.currentTask.cb(msg.data);
+        this.nextTask();
+        break;
+      default:
+        break;
+    }
   }
 
-  addTask(task: ThreadTask) {
+  addTask(task: ThreadTask, skipQueue: boolean = false) {
+    if (skipQueue) {
+      if (this.inUse) this.queue.unshift(task);
+      else {
+        this.sendTask(task);
+      }
+      return true;
+    }
+
     if (this.inUse && this.queue.length < this.maxQueueSize) {
       this.queue.push(task);
       return true;
@@ -43,12 +74,35 @@ export default class Thread {
         chosen = this.queue.shift();
       }
 
-      this.worker.postMessage(task);
+      this.sendTask(chosen);
 
       return true;
     }
 
     return false;
+  }
+
+  private sendTask(task: ThreadTask) {
+    this.currentTask = task;
+    this.inUse = true;
+    this.worker.postMessage({ task: task.task, data: task.data });
+  }
+
+  private nextTask() {
+    if (this.queue.length === 0) {
+      this.inUse = false;
+      return;
+    }
+
+    this.sendTask(this.queue.shift());
+  }
+
+  private clean() {
+    if (!this.inUse && this.queue.length > 0) {
+      this.sendTask(this.queue.shift());
+    }
+
+    setTimeout(() => this.clean(), this.cleanRate);
   }
 
   getInUse() {
@@ -61,5 +115,9 @@ export default class Thread {
 
   queueSize() {
     return this.queue.length;
+  }
+
+  private log(...params: any) {
+    console.log(`[${this.id}]:`, ...params);
   }
 }
