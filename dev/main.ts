@@ -11,7 +11,7 @@ blz.initChunkController({
   player: blz.player,
   worldSize: 10000,
   renderDist: 12,
-  maxChunksPerTick: 1,
+  maxChunksPerTick: navigator.hardwareConcurrency,
   bedrock: -127,
   chunkSize: 8,
   chunkHeight: 127,
@@ -19,10 +19,10 @@ blz.initChunkController({
 
 blz.player.enableBlockPicking(
   blz.chunkController,
-  5,
+  40,
   createBuildAndBreakHandler(blz, {
-    buildDelay: 200,
-    breakDelay: 200,
+    buildDelay: 0,
+    breakDelay: 0,
 
     canBreak: () => isMouseDown(Mouse.LEFT),
     canBuild: () => isMouseDown(Mouse.RIGHT),

@@ -62,10 +62,13 @@ export default class ChunkController {
   maxChunksPerTick: number;
 
   chunks: { [index: string]: Uint8Array } = {};
+
   geometry: { [index: string]: ChunkGeometry } = {};
   pendingGeometry: { [index: string]: boolean } = {};
   replaceGeometry: { [index: string]: boolean } = {};
-  // buffers: { [index: string]: { indices: WebGLBuffer; vertices: WebGLBuffer } } = {};
+  verticesBuffer: WebGLBuffer;
+  indicesBuffer: WebGLBuffer;
+
   renderQueue: string[] = [];
   renderQueueMax: number;
   drawn = 0;
@@ -106,6 +109,8 @@ export default class ChunkController {
       // cb: () => console.log("init-geometry-generator"),
     });
 
+    this.verticesBuffer = this.gl.createBuffer();
+    this.indicesBuffer = this.gl.createBuffer();
     this.setupShader(this.gl);
   }
 
@@ -281,71 +286,72 @@ export default class ChunkController {
       // exit if geometry is still being generated on thread
       if (this.pendingGeometry[k]) continue;
 
-      const geo = this.geometry[k];
-      const gl = this.gl;
-
-      // calculate chunk position matrix
-      const modelMatrix = mat4.create();
+      // calculate chunk position
       const position = this.chunkPos(k);
       const positionVec = vec3.fromValues(position.x * this.size, this.bedrock, position.y * this.size);
-      mat4.translate(modelMatrix, modelMatrix, positionVec);
 
-      // calculate projection view matrix
-      const projectionViewMatrix = this.player.camera.getProjectionViewMatrix();
-
-      // frustum cull
-      if (!this.player.camera.frustum.containsBox(new Box(positionVec, this.size, this.height, this.size))) {
-        continue;
-      }
-      this.drawn++;
-
-      // buffer data
-      const verticesBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, geo.vertices, gl.STATIC_DRAW);
-
-      // console.log(geo.vertices[2].toString(2));
-
-      const indexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geo.indices, gl.STATIC_DRAW);
-
-      // bind vertex buffer to shader
-      const numComponents = 1;
-      const type = gl.FLOAT;
-      const normalize = false;
-      const stride = 0;
-      const offset = 0;
-
-      gl.vertexAttribPointer(
-        this.shaderProgramInfo.attribLocations.vertex,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset
-      );
-      gl.enableVertexAttribArray(this.shaderProgramInfo.attribLocations.vertex);
-
-      gl.useProgram(this.shaderProgramInfo.program);
-
-      gl.uniformMatrix4fv(
-        this.shaderProgramInfo.uniformLocations.projectionViewMatrix,
-        false,
-        projectionViewMatrix
-      );
-      gl.uniformMatrix4fv(this.shaderProgramInfo.uniformLocations.modelMatrix, false, modelMatrix);
-
-      // set texture if tilesheet exists
-      if (this.tilesheet) {
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.tilesheet.texture);
-        gl.uniform1i(this.shaderProgramInfo.uniformLocations.texture, 0);
-        gl.uniform1f(this.shaderProgramInfo.uniformLocations.numOfTiles, this.tilesheet.numOfTiles);
-      }
-
-      gl.drawElements(this.drawMode, geo.indices.length, gl.UNSIGNED_INT, 0);
+      this.renderChunk(this.geometry[k], positionVec);
     }
+  }
+
+  private renderChunk(geometry: ChunkGeometry, position: vec3) {
+    const gl = this.gl;
+    const camera = this.player.camera;
+
+    // calculate chunk position matrix
+    const modelMatrix = mat4.create();
+    mat4.fromTranslation(modelMatrix, position);
+
+    // calculate projection view matrix
+    const projectionViewMatrix = this.player.camera.getProjectionViewMatrix();
+
+    // frustum cull
+    if (!camera.frustum.containsBox(new Box(position, this.size, this.height, this.size))) {
+      return;
+    }
+
+    // buffer data
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, geometry.vertices, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.indices, gl.STATIC_DRAW);
+
+    // bind vertex buffer to shader
+    const numComponents = 1;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+
+    gl.vertexAttribPointer(
+      this.shaderProgramInfo.attribLocations.vertex,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset
+    );
+    gl.enableVertexAttribArray(this.shaderProgramInfo.attribLocations.vertex);
+
+    gl.useProgram(this.shaderProgramInfo.program);
+
+    gl.uniformMatrix4fv(
+      this.shaderProgramInfo.uniformLocations.projectionViewMatrix,
+      false,
+      projectionViewMatrix
+    );
+    gl.uniformMatrix4fv(this.shaderProgramInfo.uniformLocations.modelMatrix, false, modelMatrix);
+
+    // set texture if tilesheet exists
+    if (this.tilesheet) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.tilesheet.texture);
+      gl.uniform1i(this.shaderProgramInfo.uniformLocations.texture, 0);
+      gl.uniform1f(this.shaderProgramInfo.uniformLocations.numOfTiles, this.tilesheet.numOfTiles);
+    }
+
+    gl.drawElements(this.drawMode, geometry.indices.length, gl.UNSIGNED_INT, 0);
   }
 
   /**

@@ -57,6 +57,13 @@ export default class Thread {
     }
   }
 
+  /**
+   * Attempts to run or queue the task on the thread
+   *
+   * @param task
+   * @param skipQueue if true then the max queue size is ignored and the task is prepended to the front of the queue
+   * @returns true when the task is ran or queued, false otherwise
+   */
   addTask(task: ThreadTask, skipQueue: boolean = false) {
     if (skipQueue) {
       if (this.inUse) this.queue.unshift(task);
@@ -111,8 +118,13 @@ export default class Thread {
     return this.inUse;
   }
 
+  /**
+   * A thread is free when it is not in use or the queue size is below the thread's maximum queue size
+   *
+   * @returns true/false depending on if the thread is free
+   */
   isFree() {
-    return this.inUse || this.queue.length < this.maxQueueSize;
+    return !this.inUse || this.queue.length < this.maxQueueSize;
   }
 
   queueSize() {
