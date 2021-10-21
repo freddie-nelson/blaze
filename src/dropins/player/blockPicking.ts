@@ -19,20 +19,16 @@ export function createBuildAndBreakHandler(blz: Blaze, opts: BuildAndBreakOption
   let lastBreakTime = performance.now();
 
   return (intersections: BlockIntersection[]) => {
-    const chunkController = blz.chunkController;
-    const chunks = chunkController.chunks;
+    const chunkController = blz.getChunkController();
+    const chunks = chunkController.getChunks();
+    const size = chunkController.getSize();
+    const height = chunkController.getHeight();
 
     // filter out undesired voxels
     const filteredIntersections = intersections.filter((i) => {
       const chunk = chunks[chunkController.chunkKey(i.location.chunk.x, i.location.chunk.y)];
       if (chunk) {
-        const index = from3Dto1D(
-          i.location.x,
-          i.location.y,
-          i.location.z,
-          chunkController.size,
-          chunkController.height
-        );
+        const index = from3Dto1D(i.location.x, i.location.y, i.location.z, size, height);
 
         return chunk[index] > 0;
       }
@@ -48,20 +44,15 @@ export function createBuildAndBreakHandler(blz: Blaze, opts: BuildAndBreakOption
       lastBreakTime = performance.now();
 
       // find chunk which contains the voxel
-      const chunk = chunks[blz.chunkController.chunkKey(loc.chunk.x, loc.chunk.y)];
+      const chunk = chunks[chunkController.chunkKey(loc.chunk.x, loc.chunk.y)];
       if (!chunk) return;
 
       // replace voxel with air
-      const i = from3Dto1D(loc.x, loc.y, loc.z, chunkController.size, chunkController.height);
+      const i = from3Dto1D(loc.x, loc.y, loc.z, size, height);
       if (opts.onBreak) {
         opts.onBreak(i, chunk, loc);
 
-        if (
-          loc.x === 0 ||
-          loc.x === chunkController.size - 1 ||
-          loc.z === 0 ||
-          loc.z === chunkController.size - 1
-        ) {
+        if (loc.x === 0 || loc.x === size - 1 || loc.z === 0 || loc.z === size - 1) {
           chunkController.refreshChunk(loc.chunk, true);
         } else {
           chunkController.refreshChunk(loc.chunk);
@@ -82,18 +73,18 @@ export function createBuildAndBreakHandler(blz: Blaze, opts: BuildAndBreakOption
 
       // calculate build voxel's chunk if it exceeds chunk limits
       if (voxel.x < 0) {
-        voxel.x = chunkController.size - 1;
+        voxel.x = size - 1;
         voxel.chunk.x--;
         refreshNeighbours = true;
-      } else if (voxel.x >= chunkController.size) {
+      } else if (voxel.x >= size) {
         voxel.x = 0;
         voxel.chunk.x++;
         refreshNeighbours = true;
       } else if (voxel.z < 0) {
-        voxel.z = chunkController.size - 1;
+        voxel.z = size - 1;
         voxel.chunk.y--;
         refreshNeighbours = true;
-      } else if (voxel.z >= chunkController.size) {
+      } else if (voxel.z >= size) {
         voxel.z = 0;
         voxel.chunk.y++;
         refreshNeighbours = true;
@@ -102,7 +93,7 @@ export function createBuildAndBreakHandler(blz: Blaze, opts: BuildAndBreakOption
       const chunk = chunks[chunkController.chunkKey(voxel.chunk.x, voxel.chunk.y)];
       if (!chunk) return;
 
-      const i = from3Dto1D(voxel.x, voxel.y, voxel.z, chunkController.size, chunkController.height);
+      const i = from3Dto1D(voxel.x, voxel.y, voxel.z, size, height);
       if (opts.onBuild) {
         opts.onBuild(i, chunk, voxel);
 

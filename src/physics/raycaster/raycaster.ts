@@ -45,6 +45,7 @@ export default class Raycaster {
    * @returns The positions of every voxel the ray intersected with **(INCLUDING START AND AIR VOXELS)** and their face normal the ray entered. Sorted in ascending order by distance from the ray's origin.
    */
   intersectChunks(chunkController: ChunkController): { location: VoxelLocation; face: vec3 }[] {
+    const chunks = chunkController.getChunks();
     const intersections: { location: VoxelLocation; face: vec3 }[] = [];
 
     // voxel containing the origin point
@@ -108,11 +109,11 @@ export default class Raycaster {
 
       const vox = getVoxel(
         vec3.fromValues(x, y, z),
-        chunkController.size,
-        chunkController.height,
-        chunkController.bedrock
+        chunkController.getSize(),
+        chunkController.getHeight(),
+        chunkController.getBedrock()
       );
-      if (vox && chunkController.chunks[chunkController.chunkKey(vox.chunk.x, vox.chunk.y)]) {
+      if (vox && chunks[chunkController.chunkKey(vox.chunk.x, vox.chunk.y)]) {
         intersections.push({
           location: vox,
           face: vec3.fromValues(face[0], face[1], face[2]),

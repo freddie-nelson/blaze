@@ -10,13 +10,16 @@ import { Neighbours } from "../voxel";
 import Box from "../physics/box";
 import Tilesheet from "../tilesheet";
 import ThreadPool from "../threading/threadPool";
+import Object3D from "../object3d";
+import Camera from "../camera";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
-  player: Player;
+  object: Object3D;
+  camera: Camera;
   renderDist: number;
   worldSize: number;
-  maxChunksPerTick: number;
+  chunksPerTick: number;
   bedrock: number;
   chunkSize?: number;
   chunkHeight?: number;
@@ -34,46 +37,54 @@ export interface ChunkGeometry {
   vertices: Uint32Array;
 }
 
+export type ChunkDrawingMode = 1 | 4; // WebGL2RenderingContext.LINES | WebGL2RenderingContext.TRIANGLES
+
 export default class ChunkController {
-  threadPool: ThreadPool;
-  chunkGenerator: ChunkGenerator;
-  geometryGenerator: GeometryGenerator;
+  private threadPool: ThreadPool;
+  private chunkGenerator: ChunkGenerator;
+  private geometryGenerator: GeometryGenerator;
 
-  player: Player;
+  private object: Object3D; // object to center generation around
+  private camera: Camera; // camera to use for rendering
 
-  height = 255;
-  size = 8;
-  bedrock: number;
+  private height = 255;
+  private size = 8;
+  private bedrock: number;
 
-  worldSize: number;
-  renderDist: number;
-  generationDist: number;
-  chunkOffset: number;
-  renderOffset: number;
-  generationOffset: number;
+  private worldSize: number;
+  private renderDist: number;
+  private generationDist: number;
+  private chunkOffset: number;
+  private renderOffset: number;
 
-  gl: WebGL2RenderingContext;
-  shader: WebGLProgram;
-  shaderProgramInfo: ShaderProgramInfo;
-  tilesheet: Tilesheet;
+  private gl: WebGL2RenderingContext;
+  private shader: WebGLProgram;
+  private shaderProgramInfo: ShaderProgramInfo;
+  private tilesheet: Tilesheet;
 
-  queue: { x: number; y: number }[] = [];
-  lastCenter: { x: number; y: number } = { x: NaN, y: NaN };
-  maxChunksPerTick: number;
+  private queue: { x: number; y: number }[] = [];
+  private lastCenter: { x: number; y: number } = { x: NaN, y: NaN };
+  private chunksPerTick: number;
 
-  chunks: { [index: string]: Uint8Array } = {};
+  private chunks: { [index: string]: Uint8Array } = {};
 
-  geometry: { [index: string]: ChunkGeometry } = {};
-  pendingGeometry: { [index: string]: boolean } = {};
-  replaceGeometry: { [index: string]: boolean } = {};
-  verticesBuffer: WebGLBuffer;
-  indicesBuffer: WebGLBuffer;
+  private geometry: { [index: string]: ChunkGeometry } = {};
+  private pendingGeometry: { [index: string]: boolean } = {};
+  private replaceGeometry: { [index: string]: boolean } = {};
 
-  renderQueue: string[] = [];
-  renderQueueMax: number;
-  drawn = 0;
-  drawMode = WebGL2RenderingContext.TRIANGLES;
+  private verticesBuffer: WebGLBuffer;
+  private indicesBuffer: WebGLBuffer;
 
+  private renderQueue: string[] = [];
+  private drawn = 0;
+  private drawMode = WebGL2RenderingContext.TRIANGLES;
+
+  /**
+   * Creates a {@link ChunkController} instance and sets it up for use.
+   *
+   * @param opts The options to use when setting up the controller.
+   * @param threadPool The thread pool to use for chunk geometry generation.
+   */
   constructor(opts: ChunkControllerOptions, threadPool?: ThreadPool) {
     // validation checks
     if (opts.chunkSize && (opts.chunkSize < 1 || opts.chunkSize > 15))
@@ -82,10 +93,10 @@ export default class ChunkController {
       throw new Error("Chunk Controller: chunk height must be between 1 and 1023 inclusive.");
 
     this.gl = opts.gl;
-    this.player = opts.player;
-    this.generationDist = opts.renderDist + 2;
-    this.renderDist = opts.renderDist;
-    this.maxChunksPerTick = opts.maxChunksPerTick;
+    this.object = opts.object;
+    this.camera = opts.camera;
+    this.setRenderDist(opts.renderDist);
+    this.chunksPerTick = opts.chunksPerTick;
     this.worldSize = opts.worldSize;
     this.bedrock = opts.bedrock;
     if (opts.chunkSize) this.size = opts.chunkSize;
@@ -93,8 +104,6 @@ export default class ChunkController {
 
     this.chunkOffset = Math.floor(this.worldSize / 2);
     this.renderOffset = Math.floor(this.renderDist / 2);
-    this.generationOffset = Math.floor(this.generationDist / 2);
-    this.renderQueueMax = this.renderDist * this.renderDist;
 
     this.chunkGenerator = new ChunkGenerator({ height: this.height, size: this.size });
     this.geometryGenerator = new GeometryGenerator({
@@ -102,19 +111,26 @@ export default class ChunkController {
       chunkHeight: this.height,
     });
 
-    this.threadPool = threadPool;
-    threadPool.everyThread({
-      task: "init-geometry-generator",
-      data: new Uint16Array([this.size, this.height]),
-      // cb: () => console.log("init-geometry-generator"),
-    });
+    if (threadPool) {
+      this.threadPool = threadPool;
+      threadPool.everyThread({
+        task: "init-geometry-generator",
+        data: new Uint16Array([this.size, this.height]),
+        // cb: () => console.log("init-geometry-generator"),
+      });
+    }
 
     this.verticesBuffer = this.gl.createBuffer();
     this.indicesBuffer = this.gl.createBuffer();
     this.setupShader(this.gl);
   }
 
-  setupShader(gl: WebGL2RenderingContext) {
+  /**
+   * Creates the chunk rendering vertex and fragment shaders.
+   *
+   * @param gl The webgl context to use when creating the shader
+   */
+  private setupShader(gl: WebGL2RenderingContext) {
     this.shader = createShaderProgram(gl, vsChunk, fsChunk);
     this.shaderProgramInfo = {
       program: this.shader,
@@ -130,8 +146,13 @@ export default class ChunkController {
     };
   }
 
+  /**
+   * The controller's main update loop.
+   *
+   * Called every frame the main engine loop.
+   */
   update() {
-    const center = this.getChunk(this.player.getPosition());
+    const center = this.getChunk(this.object.getPosition());
     if (this.lastCenter.x !== center.x || this.lastCenter.y !== center.y) {
       this.lastCenter = center;
 
@@ -152,10 +173,11 @@ export default class ChunkController {
   }
 
   /**
-   * Queues chunks for generation around **center**
-   * Uses modified BFS algorithm to produce queue with chunks ordered by distance from **center**
+   * Queues chunks for generation around the provided `center`.
    *
-   * @param center center of generation algorithm
+   * Uses a modified BFS algorithm to produce queue with chunks ordered by distance from `center`
+   *
+   * @param center Center of generation algorithm
    */
   private queueChunks(center: { x: number; y: number }) {
     const start = { x: center.x - this.chunkOffset, y: center.y - this.chunkOffset };
@@ -194,10 +216,17 @@ export default class ChunkController {
     this.queue = needsGeneration;
   }
 
+  /**
+   * Generates chunks from the queue.
+   *
+   * Skips chunks that have data in `this.chunks` or breach the world size limits.
+   *
+   * @returns The keys for the chunks that were generated.
+   */
   private generateChunks() {
     const generated: string[] = [];
 
-    for (let i = 0; i < this.maxChunksPerTick && this.queue.length !== 0; i++) {
+    for (let i = 0; i < this.chunksPerTick && this.queue.length !== 0; i++) {
       const pos = this.queue.shift();
       const key = this.chunkKey(pos.x, pos.y);
 
@@ -221,9 +250,11 @@ export default class ChunkController {
   /**
    * Generates geometry for every chunk that requires it within the provided limits.
    *
-   * Replacement geometry is always generated on the main thread.
+   * Geometry is generated on the thread pool and falls back to the main thread when no pool is available.
    *
-   * @param limits
+   * However, replacement geometry is always generated on the main thread.
+   *
+   * @param limits The chunk limits to check for needed geometry.
    */
   private generateGeometry(limits: Limits) {
     this.renderQueue = [];
@@ -280,8 +311,12 @@ export default class ChunkController {
     }
   }
 
+  /**
+   * Render's all chunks in the render queue that have geometry.
+   */
   private renderChunks() {
     this.drawn = 0;
+
     for (const k of this.renderQueue) {
       // exit if geometry is still being generated on thread
       if (this.pendingGeometry[k]) continue;
@@ -294,21 +329,32 @@ export default class ChunkController {
     }
   }
 
+  /**
+   * Render's a chunk from it's geometry.
+   *
+   * A chunk is automatically culled if it is outside `this.camera`'s frustum.
+   *
+   * Overwrites the data in `this.verticesBuffer` and `this.indicesBuffer`
+   *
+   * @param geometry The chunk's geometry
+   * @param position The world position of the chunk
+   */
   private renderChunk(geometry: ChunkGeometry, position: vec3) {
     const gl = this.gl;
-    const camera = this.player.camera;
+    const camera = this.camera;
 
     // calculate chunk position matrix
     const modelMatrix = mat4.create();
     mat4.fromTranslation(modelMatrix, position);
 
     // calculate projection view matrix
-    const projectionViewMatrix = this.player.camera.getProjectionViewMatrix();
+    const projectionViewMatrix = this.camera.getProjectionViewMatrix();
 
     // frustum cull
     if (!camera.frustum.containsBox(new Box(position, this.size, this.height, this.size))) {
       return;
     }
+    this.drawn++;
 
     // buffer data
     gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
@@ -355,10 +401,10 @@ export default class ChunkController {
   }
 
   /**
-   * Tells the controller to regenerate a chunk's geometry
+   * Tells the controller to regenerate a chunk's geometry.
    *
-   * @param chunkLocation Position of chunk to refresh
-   * @param refreshNeighbours Boolean representing wether the chunks neighbours should also be refreshed
+   * @param chunkLocation Coordinates of the chunk to refresh
+   * @param refreshNeighbours Boolean representing wether the chunks neighbours should also be refreshed.
    */
   refreshChunk({ x, y }: { x: number; y: number }, refreshNeighbours = false) {
     this.replaceGeometry[this.chunkKey(x, y)] = true;
@@ -371,6 +417,25 @@ export default class ChunkController {
     }
   }
 
+  /**
+   * Tells the controller to regenerate the geometry of all chunk's in the render queue.
+   */
+  refreshAllChunks() {
+    for (const c in this.geometry) {
+      delete this.geometry[c];
+    }
+
+    for (const c in this.pendingGeometry) {
+      delete this.pendingGeometry[c];
+    }
+  }
+
+  /**
+   * Calculates a chunk's neighbours from it's coordinates.
+   *
+   * @param pos The chunk's coordinates
+   * @returns The chunk's neighbours
+   */
   getChunkNeighbours({ x, y }: { x: number; y: number }) {
     const n = <Neighbours<Uint8Array>>{
       left: this.chunks[this.chunkKey(x - 1, y)],
@@ -388,12 +453,12 @@ export default class ChunkController {
   }
 
   /**
-   * Gets the containing chunk's coordinates of a world position
+   * Gets the containing chunk coordinates from a world position.
    *
    * @param x
    * @param y
    * @param z
-   * @returns
+   * @returns The containing chunk coordinates
    */
   getChunk(position: vec3) {
     const x = Math.floor(position[0] / this.size + this.chunkOffset);
@@ -405,10 +470,23 @@ export default class ChunkController {
     };
   }
 
+  /**
+   * Returns the chunk key from a set of chunk coordinates
+   *
+   * @param x
+   * @param y
+   * @returns The chunk key used to identify a chunk around the chunk controller
+   */
   chunkKey(x: number, y: number) {
     return `${x} ${y}`;
   }
 
+  /**
+   * Returns the chunk coordinates from it's key
+   *
+   * @param key The chunk's key
+   * @returns The chunk's coordinates
+   */
   chunkPos(key: string) {
     const split = key.split(" ");
     if (split.length !== 2)
@@ -421,5 +499,202 @@ export default class ChunkController {
         x: Number(split[0]),
         y: Number(split[1]),
       };
+  }
+
+  /**
+   * Gets the width and depth of each chunk
+   *
+   * @returns The size of each chunk
+   */
+  getSize() {
+    return this.size;
+  }
+
+  /**
+   * Gets the height of each chunk
+   *
+   * @returns The height of each chunk
+   */
+  getHeight() {
+    return this.height;
+  }
+
+  /**
+   * Gets the bedrock level of each chunk
+   *
+   * @returns The bedrock level of each chunk
+   */
+  getBedrock() {
+    return this.bedrock;
+  }
+
+  /**
+   * Gets the dimensions and bedrock level of each chunk
+   *
+   * @returns The dimensions and bedrock level of each chunk
+   */
+  getChunkDimensions() {
+    return {
+      size: this.size,
+      height: this.height,
+      bedrock: this.bedrock,
+    };
+  }
+
+  /**
+   * Gets the world offset of rendered chunks.
+   *
+   * @returns The chunk offset
+   */
+  getChunkOffset() {
+    return this.chunkOffset;
+  }
+
+  /**
+   * Sets the controller's render distance and updates the generation distance.
+   *
+   * @param renderDist The new render distance to use
+   */
+  setRenderDist(renderDist: number) {
+    this.renderDist = renderDist;
+    this.generationDist = renderDist + 2;
+  }
+
+  /**
+   * Gets the controller's render distance
+   *
+   * @returns The controller's render distance
+   */
+  getRenderDist() {
+    return this.renderDist;
+  }
+
+  /**
+   * Gets the controller's generation distance
+   *
+   * @returns The controller's generation distance
+   */
+  getGenerationDistance() {
+    return this.generationDist;
+  }
+
+  /**
+   * Sets chunksPerTick to the provided value.
+   *
+   * Issues a warning if a value above `navigator.hardwareConcurrency * 2` is provided.
+   *
+   * @param chunksPerTick The value to set `this.chunksPerTick` to
+   */
+  setChunksPerTick(chunksPerTick: number) {
+    if (chunksPerTick > navigator.hardwareConcurrency * 2)
+      console.warn(
+        "Chunk Controller: It is advised not to set chunksPerTick to a number above `navigator.hardwareConcurrency * 2`."
+      );
+
+    this.chunksPerTick = chunksPerTick;
+  }
+
+  /**
+   * Gets the maximum number of chunks the controller can generate per tick/update
+   *
+   * @returns The number of chunks that can be generated per tick
+   */
+  getChunksPerTick() {
+    return this.chunksPerTick;
+  }
+
+  /**
+   * Gets the map containing all loaded chunks.
+   *
+   * The map uses keys that match the format of keys from `this.chunkKey`
+   *
+   * @returns A map containing all loaded chunks
+   */
+  getChunks() {
+    return this.chunks;
+  }
+
+  /**
+   * Gets the map containing all cached chunk geometry.
+   *
+   * The map uses keys that match the format of keys from `this.chunkKey`
+   *
+   * @returns A map containing all cached chunk geometry
+   */
+  getGeometry() {
+    return this.geometry;
+  }
+
+  /**
+   * Sets the controller's tilesheet.
+   *
+   * @param tilesheet The instance of {@link Tilesheet} to set the controller's tilesheet to
+   */
+  setTilesheet(tilesheet: Tilesheet) {
+    this.tilesheet = tilesheet;
+  }
+
+  /**
+   * Gets the controller's current tilesheet.
+   *
+   * @returns The controller's current tilesheet
+   */
+  getTilesheet() {
+    return this.tilesheet;
+  }
+
+  /**
+   * Sets the controller's draw mode.
+   *
+   * @throws If the provided draw mode is not WebGL2RenderingContext.LINES or WebGL2RenderingContext.TRIANGLES
+   *
+   * @param drawMode The webgl drawing mode to set the controller's draw mode to
+   */
+  setDrawMode(drawMode: number) {
+    if (drawMode !== WebGL2RenderingContext.LINES || drawMode !== WebGL2RenderingContext.TRIANGLES) {
+      throw new Error(
+        "Chunk Controller: Draw mode can only be set to WebGL2RenderingContext.LINES or WebGL2RenderingContext.TRIANGLES"
+      );
+    }
+
+    this.drawMode = drawMode;
+  }
+
+  /**
+   * Gets the controller's current drawing mode.
+   *
+   * @returns The controller's current drawing mode
+   */
+  getDrawMode() {
+    return this.drawMode;
+  }
+
+  /**
+   * Gets the number of chunks drawn in the most recent render call.
+   *
+   * @returns The number of chunks drawn last render call
+   */
+  getDrawn() {
+    return this.drawn;
+  }
+
+  /**
+   * Gets the number of chunks currently waiting for generation.
+   *
+   * @returns The number chunks in the queue
+   */
+  getQueueLength() {
+    return this.queue.length;
+  }
+
+  /**
+   * Gets the maximum number of chunks that could potentially be rendered.
+   *
+   * Data is from the most recent tick, so this number may become outdated in the next update call.
+   *
+   * @returns The number of chunks in the render queue
+   */
+  getRenderQueueLength() {
+    return this.renderQueue.length;
   }
 }

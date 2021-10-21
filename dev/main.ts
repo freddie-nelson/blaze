@@ -2,23 +2,27 @@ import Blaze from "../lib/src/blaze";
 import { createBuildAndBreakHandler } from "../lib/src/dropins/player/blockPicking";
 import { addKeyListener } from "../lib/src/keyboard";
 import { isMouseDown, Mouse } from "../lib/src/mouse";
-import Color from "../lib/src/utils/color";
 
 const blz = new Blaze(<HTMLCanvasElement>document.getElementById("canvas"));
-blz.initPlayer();
-blz.initChunkController({
+// blz.setResolutionScale(0.5);
+
+const player = blz.setPlayer();
+
+// setup chunk controller
+const chunkController = blz.setChunkController({
   gl: blz.gl,
-  player: blz.player,
+  object: player,
+  camera: player.camera,
   worldSize: 10000,
   renderDist: 12,
-  maxChunksPerTick: navigator.hardwareConcurrency,
+  chunksPerTick: navigator.hardwareConcurrency,
   bedrock: -127,
   chunkSize: 8,
   chunkHeight: 127,
 });
 
-blz.player.enableBlockPicking(
-  blz.chunkController,
+player.enableBlockPicking(
+  chunkController,
   40,
   createBuildAndBreakHandler(blz, {
     buildDelay: 0,
@@ -35,15 +39,14 @@ blz.player.enableBlockPicking(
 // optifine like zoom
 addKeyListener("KeyC", (pressed) => {
   if (pressed) {
-    blz.player.camera.setFov(blz.gl, 30);
+    player.camera.setFov(blz.gl, 30);
   } else {
-    blz.player.camera.setFov(blz.gl, 70);
+    player.camera.setFov(blz.gl, 70);
   }
 });
 
 blz.setTilesheet("tilesheet.png", 16, 22);
-blz.skyColor = new Color("skyblue");
+blz.setSkyColor("skyblue");
 
 blz.toggleDebug();
-
-blz.update();
+blz.start();

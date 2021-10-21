@@ -22,6 +22,7 @@ export default class Debug {
 
   constructor(blz: Blaze) {
     this.blz = blz;
+    const chunkController = blz.getChunkController();
 
     const container = document.createElement("div");
     container.setAttribute(
@@ -40,12 +41,11 @@ export default class Debug {
     this.frustum = this.createText();
     this.lineMode = this.createToggle("Draw Lines: ", (val) =>
       val
-        ? (this.blz.chunkController.drawMode = WebGL2RenderingContext.LINES)
-        : (this.blz.chunkController.drawMode = WebGL2RenderingContext.TRIANGLES)
+        ? chunkController.setDrawMode(WebGL2RenderingContext.LINES)
+        : chunkController.setDrawMode(WebGL2RenderingContext.TRIANGLES)
     );
     this.reloadChunks = this.createButton("Reload Chunks", () => {
-      this.blz.chunkController.geometry = {};
-      this.blz.chunkController.pendingGeometry = {};
+      chunkController.refreshAllChunks();
     });
     this.reloadChunks.id = "reload-btn";
     this.showBtn = this.createButton("Show/Hide Menu", () => {
@@ -71,11 +71,12 @@ export default class Debug {
   update(delta: number) {
     if (!this.show) return;
 
-    const player = this.blz.player;
+    const player = this.blz.getPlayer();
     const position = player.getPosition();
-    const chunk = this.blz.chunkController.getChunk(position);
-    chunk.x -= this.blz.chunkController.chunkOffset;
-    chunk.y -= this.blz.chunkController.chunkOffset;
+    const chunkController = this.blz.getChunkController();
+    const chunk = chunkController.getChunk(position);
+    chunk.x -= chunkController.getChunkOffset();
+    chunk.y -= chunkController.getChunkOffset();
 
     this.fps.textContent = `FPS: ${(1 / delta).toFixed(1)}`;
 
@@ -83,21 +84,21 @@ export default class Debug {
       1
     )}, z: ${position[2].toFixed(1)} }`;
 
-    // const neighbours = this.blz.chunkController.getChunkNeighbours(chunk);
+    // const neighbours = chunkController.getChunkNeighbours(chunk);
     // const emptyNeighbours = Object.keys(neighbours).map((k) => {
     //   if (neighbours[k] && neighbours[k][0] === 0) return k;
     // });
     // this.chunk.textContent = `Chunk { x: ${chunk.x}, y: ${chunk.y}, isEmpty: ${
-    //   this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`] &&
-    //   this.blz.chunkController.chunks[`${chunk.x} ${chunk.y}`][0] === 0
+    //   chunkController.chunks[`${chunk.x} ${chunk.y}`] &&
+    //   chunkController.chunks[`${chunk.x} ${chunk.y}`][0] === 0
     // }, emptyNs: ${emptyNeighbours} }`;
     this.chunk.textContent = `Chunk { x: ${chunk.x}, y: ${chunk.y} }`;
 
     this.chunks.textContent = `Chunks { loaded: ${
-      Object.keys(this.blz.chunkController.chunks).length
-    }, drawn: ${this.blz.chunkController.drawn} }`;
+      Object.keys(chunkController.getChunks()).length
+    }, drawn: ${chunkController.getDrawn()} }`;
 
-    this.queued.textContent = `Queued { render: ${this.blz.chunkController.renderQueue.length}, generation: ${this.blz.chunkController.queue.length} }`;
+    this.queued.textContent = `Queued { render: ${chunkController.getRenderQueueLength()}, generation: ${chunkController.getQueueLength()} }`;
 
     this.camera.textContent = `Camera { yaw: ${((player.getRotation()[1] / Math.PI) * 180).toFixed(2)} }`;
 

@@ -5,6 +5,11 @@ export default class ThreadPool {
   poolQueue: ThreadTask[] = []; // used when all thread queues are full
   poolingRate = 100; // ms between each thread check
 
+  /**
+   * Creates a {@link ThreadPool} instance, executes any provided startup tasks on it's threads and starts it's cleaning loop.
+   *
+   * @param startupTasks Tasks to run on each created thread.
+   */
   constructor(...startupTasks: ThreadTask[]) {
     for (let i = 0; i < this.cores; i++) {
       this.threads.push(new Thread(`Thread: ${i}`));
@@ -26,7 +31,7 @@ export default class ThreadPool {
   requestThread(task: ThreadTask, queue: boolean = false): boolean {
     let openThread = this.threads[0];
     for (const t of this.threads) {
-      if (t.isFree() && t.queueSize() < openThread.queueSize()) {
+      if (t.isFree() && t.getNumInQueue() < openThread.getNumInQueue()) {
         openThread = t;
       }
     }
@@ -41,19 +46,6 @@ export default class ThreadPool {
   }
 
   /**
-   * Moves as many tasks as possible from the pool queue to open threads
-   */
-  cleanPool() {
-    if (this.poolQueue.length !== 0) {
-      for (const task of this.poolQueue) {
-        if (!this.requestThread(task, false)) break;
-      }
-    }
-
-    setTimeout(() => this.cleanPool(), this.poolingRate);
-  }
-
-  /**
    * Adds every provided task to every thread's queue, ignoring queue size limits.
    *
    * @param tasks
@@ -64,5 +56,18 @@ export default class ThreadPool {
         thread.addTask(task, true);
       });
     }
+  }
+
+  /**
+   * Moves as many tasks as possible from the pool queue to open threads
+   */
+  private cleanPool() {
+    if (this.poolQueue.length !== 0) {
+      for (const task of this.poolQueue) {
+        if (!this.requestThread(task, false)) break;
+      }
+    }
+
+    setTimeout(() => this.cleanPool(), this.poolingRate);
   }
 }

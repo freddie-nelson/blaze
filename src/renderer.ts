@@ -1,13 +1,12 @@
 import { clear } from "./utils/gl";
 
 /**
- * Creates the webgl2 rendering context for the canvas
- * Also resizes the canvas to fit the window and clears the webgl buffer
- *
- * @throws When browser does not support webgl 2
+ * Creates the webgl2 rendering context for the canvas and clears the webgl buffer.
  *
  * @param canvas
- * @returns Webgl 2 rendering context for **canvas**
+ * @returns The created webgl2 rendering context
+ *
+ * @throws When browser does not support webgl 2.0
  */
 export function createRenderer(canvas: HTMLCanvasElement, opts?: WebGLContextAttributes) {
   const gl = canvas.getContext("webgl2", opts);
@@ -25,13 +24,13 @@ export function createRenderer(canvas: HTMLCanvasElement, opts?: WebGLContextAtt
 }
 
 /**
- * Resizes the canvas attached to `gl` to the window size and updates the viewport
+ * Resizes the `width` and `height` of the canvas attached to `gl` to the canvas' `clientWidth` and `clientHeight` multiplied by the `resolutionScale` or 1.
  *
  * @param gl
  */
-export function resizeRendererToCanvas(gl: WebGL2RenderingContext) {
-  gl.canvas.width = (gl.canvas as HTMLCanvasElement).clientWidth;
-  gl.canvas.height = (gl.canvas as HTMLCanvasElement).clientHeight;
+export function resizeRendererToCanvas(gl: WebGL2RenderingContext, resolutionScale = 1) {
+  gl.canvas.width = (gl.canvas as HTMLCanvasElement).clientWidth * resolutionScale;
+  gl.canvas.height = (gl.canvas as HTMLCanvasElement).clientHeight * resolutionScale;
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 }
 
