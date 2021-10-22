@@ -1,4 +1,4 @@
-import { mat4, vec3 } from "gl-matrix";
+import { glMatrix, mat4, vec3 } from "gl-matrix";
 import Frustum from "./frustum";
 import Object3D from "./object3d";
 
@@ -31,7 +31,7 @@ export default class Camera extends Object3D {
    * @param fov FOV angle of the camera in degrees
    */
   setFov(gl: WebGL2RenderingContext, fov: number) {
-    this.setProjectionMatrix(gl, (fov * Math.PI) / 180);
+    this.setProjectionMatrix(gl, glMatrix.toRadian(fov));
   }
 
   setProjectionMatrix(

@@ -1,7 +1,8 @@
 /**
  * Simple object check.
+ *
  * @param item
- * @returns {boolean}
+ * @returns Wether or not the `item` is an object
  */
 export function isObject(item: any) {
   return item && typeof item === "object" && !Array.isArray(item);
@@ -10,8 +11,8 @@ export function isObject(item: any) {
 /**
  * Deep merge two objects. Circular reference will cause infinite recursion.
  *
- * @param target
- * @param ...sources
+ * @param target The object to merge `...sources` into
+ * @param ...sources The sources to merge into `target`
  */
 export function mergeDeep(target: any, ...sources: any[]): any {
   if (!sources.length) return target;

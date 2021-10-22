@@ -39,6 +39,11 @@ export interface ChunkGeometry {
 
 export type ChunkDrawingMode = 1 | 4; // WebGL2RenderingContext.LINES | WebGL2RenderingContext.TRIANGLES
 
+/**
+ * Chunk controller which manages all generation and rendering of chunks around a given object.
+ *
+ * Also handles multi-threading for geometry generation if created with a {@link ThreadPool} instance.
+ */
 export default class ChunkController {
   private threadPool: ThreadPool;
   private chunkGenerator: ChunkGenerator;
@@ -696,5 +701,23 @@ export default class ChunkController {
    */
   getRenderQueueLength() {
     return this.renderQueue.length;
+  }
+
+  /**
+   * Gets the {@link ChunkGenerator} instance that the controller is using.
+   *
+   * @returns The controller's chunk generator.
+   */
+  getChunkGenerator() {
+    return this.chunkGenerator;
+  }
+
+  /**
+   * Gets the {@link GeometryGenerator} instance that the controller is using.
+   *
+   * @returns The controller's geometry generator.
+   */
+  getGeometryGenerator() {
+    return this.geometryGenerator;
   }
 }

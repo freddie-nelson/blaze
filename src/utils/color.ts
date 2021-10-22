@@ -16,6 +16,11 @@ export default class Color {
   rgba: RGBAColor;
   webgl: number[];
 
+  /**
+   * Creates a {@link Color} instance from a {@link ColorLike} representation.
+   *
+   * @param color The {@link ColorLike} representation to use when creating the {@link Color} instance
+   */
   constructor(color: ColorLike) {
     let valid = false;
     if (typeof color === "object") {
@@ -32,6 +37,12 @@ export default class Color {
     if (!valid) throw new Error(`Color: '${color}' is not a valid color representation.`);
   }
 
+  /**
+   * Validates a rgba color.
+   *
+   * @param color The rgba color to validate
+   * @returns Wether or not the `color` is a valid rgba color
+   */
   validateRGBA(color: RGBAColor): boolean {
     if (color.r < 0 || color.r > 255) return false;
     if (color.g < 0 || color.g > 255) return false;
@@ -45,15 +56,32 @@ export default class Color {
     return true;
   }
 
+  /**
+   * Validates a hex color.
+   *
+   * @param color The hex color to validate
+   * @returns Wether or not the `color` is a valid hex color
+   */
   validateHEX(color: string): boolean {
     const hexRegex = /^#(([0-9A-F]){8}|([0-9A-F]{3}){1,2})$/i;
     return hexRegex.test(color);
   }
 
+  /**
+   * Validates a html color.
+   *
+   * @param color The html color to validate
+   * @returns Wether or not the `color` is a valid html color
+   */
   validateHTML(color: string): boolean {
     return Object.keys(this.html).includes(color);
   }
 
+  /**
+   * Takes in a rgba color then converts it to hex and webgl and stores the conversions.
+   *
+   * @param color The rgba color to parse
+   */
   parseRGBA(color: RGBAColor) {
     this.original = { ...color };
     color.a = color.a !== undefined ? color.a : 1;
@@ -63,6 +91,11 @@ export default class Color {
     this.webgl = this.rgbaToWebGL(color);
   }
 
+  /**
+   * Takes in a hex color then converts it to rgba and webgl and stores the conversions.
+   *
+   * @param color The hex color to parse
+   */
   parseHEX(color: string) {
     this.original = color;
 
@@ -71,6 +104,11 @@ export default class Color {
     this.webgl = this.rgbaToWebGL(this.rgba);
   }
 
+  /**
+   * Takes in a html color then converts it to hex, rgba and webgl and stores the conversions.
+   *
+   * @param color The html color to parse
+   */
   parseHTML(color: string) {
     this.original = color;
     this.hex = this.html[color];
@@ -78,6 +116,14 @@ export default class Color {
     this.webgl = this.rgbaToWebGL(this.rgba);
   }
 
+  /**
+   * Converts a valid hex color to rgba.
+   *
+   * @param hex The hex color to convert to rgba
+   * @returns The rgba equivalent of the hex color
+   *
+   * @throws When an invalid hex color is provided
+   */
   hexToRgba(hex: string): RGBAColor {
     if (!this.validateHEX(hex)) throw new Error("Color: Invalid hex color provided to hexToRgba.");
 
@@ -98,6 +144,14 @@ export default class Color {
     };
   }
 
+  /**
+   * Converts a valid rgba color to hex.
+   *
+   * @param rgba The rgba color to convert to hex
+   * @returns The hex equivalent of the rgba color
+   *
+   * @throws When an invalid rgba color is provided
+   */
   rgbaToHex(rgba: RGBAColor): string {
     if (!this.validateRGBA(rgba)) throw new Error("Color: Invalid rgba color provided to rgbaToHex.");
 
@@ -112,6 +166,14 @@ export default class Color {
     return `#${rHex}${bHex}${gHex}${aHex}`;
   }
 
+  /**
+   * Converts a valid rgba color to webgl.
+   *
+   * @param rgba The rgba color to convert to a webgl color representation
+   * @returns The webgl equivalent of the rgba color
+   *
+   * @throws When an invalid rgba color is provided
+   */
   rgbaToWebGL(rgba: RGBAColor) {
     if (!this.validateRGBA(rgba)) throw new Error("Color: Invalid rgba color provided to rgbaToWebGL.");
 

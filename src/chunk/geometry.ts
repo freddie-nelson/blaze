@@ -6,18 +6,29 @@ export interface GeometryGeneratorOptions {
   chunkHeight: number;
 }
 
+/**
+ * Creates the geometry for a chunk that will be sent to the GPU for rendering.
+ */
 export default class GeometryGenerator {
-  chunkSize: number;
-  chunkHeight: number;
-  tileSize: number;
-  tileTextureWidth: number;
-  tileTextureHeight: number;
+  private chunkSize: number;
+  private chunkHeight: number;
 
+  /**
+   * Creates a {@link GeometryGenerator} instance from the provided options.
+   *
+   * @param opts The options to use when creating the {@link GeometryGenerator}
+   */
   constructor(opts: GeometryGeneratorOptions) {
     this.chunkSize = opts.chunkSize;
     this.chunkHeight = opts.chunkHeight;
   }
 
+  /**
+   * Converts chunk geometry as normal js arrays to typed arrays that can be sent to a shader.
+   *
+   * @param geo The chunk geometry as normal JS {@link Array}s
+   * @returns The chunk geometry as {@link Uint32Array}s that is ready to be sent to the GPU
+   */
   convertGeoToTypedArrs(geo: { indices: number[]; vertices: number[] }) {
     const g = {
       vertices: new Uint32Array(geo.vertices),
@@ -28,6 +39,22 @@ export default class GeometryGenerator {
     return g;
   }
 
+  /**
+   * Generates the geometry for a given chunk.
+   *
+   * The geometry is made up of vertex data and indices.
+   *
+   * Each vertex contains its local position within the chunk, a face normal, it's voxel id, and uv coordinate.
+   *
+   * A vertex is represented as a unsigned 32 bit integer that follows the format (starts from the MSB + 1):
+   *    - position { x: 4 bits, y: 10 bits, z: 4 bits } : format { x - y - z }
+   *    - normal { normal: 3 bits } (scaled from 0.0 - 1.0 to 0 - 6)
+   *    - uv { voxelId: 8bits, uv: 2 bits }
+   *
+   * @param chunk The chunk to generate geometry for
+   * @param cNeighbours The front, back, left and right neighbours of the given chunk
+   * @returns The chunk geometry as normal JS {@link Array}s
+   */
   generateChunkGeometry(chunk: Uint8Array, cNeighbours: Neighbours<Uint8Array>) {
     const indices: number[] = [];
     const vertices: number[] = [];
@@ -66,6 +93,26 @@ export default class GeometryGenerator {
     [0, 1],
   ];
 
+  /**
+   * Generates the geometry for a single voxel.
+   *
+   * The geometry is made up of vertex data and indices.
+   *
+   * Each vertex contains its local position within the chunk, a face normal, it's voxel id, and uv coordinate.
+   *
+   * A vertex is represented as a unsigned 32 bit integer that follows the format (starts from the MSB + 1):
+   *    - position { x: 4 bits, y: 10 bits, z: 4 bits } : format { x - y - z }
+   *    - normal { normal: 3 bits } (scaled from 0.0 - 1.0 to 0 - 6)
+   *    - uv { voxelId: 8bits, uv: 2 bits }
+   *
+   * @param id The voxel's id (0 - 255)
+   * @param x The x position of the voxel within its container chunk
+   * @param y The y position of the voxel within its container chunk
+   * @param z The z position of the voxel within its container chunk
+   * @param neighbours The neighbours of the voxel (includes neighbours in neighbouring chunks)
+   * @param verticesLength The current length of the vertices generated in `this.generateChunkGeometry`
+   * @returns The vertices and indices for the voxel's geometry
+   */
   generateVoxelGeometry(
     id: number,
     x: number,
@@ -147,6 +194,16 @@ export default class GeometryGenerator {
     };
   }
 
+  /**
+   * Finds the neighbours of a voxel given it's containing chunk, the containing chunk's neighbours and the voxel position
+   *
+   * @param chunk The chunk which contains the voxel
+   * @param cNeighbours The containing chunk's neighbours
+   * @param x The x position of the voxel within its container chunk
+   * @param y The y position of the voxel within its container chunk
+   * @param z The z position of the voxel within its container chunk
+   * @returns The voxel's neighbours
+   */
   private getVoxelNeighbours(
     chunk: Uint8Array,
     cNeighbours: Neighbours<Uint8Array>,
@@ -182,5 +239,23 @@ export default class GeometryGenerator {
     // console.log(from3Dto1D(0, y, z, this.chunkSize, this.chunkHeight));
 
     return neighbours;
+  }
+
+  /**
+   * Gets the width and depth of each chunk
+   *
+   * @returns The size of each chunk
+   */
+  getSize() {
+    return this.chunkSize;
+  }
+
+  /**
+   * Gets the height of each chunk
+   *
+   * @returns The height of each chunk
+   */
+  getHeight() {
+    return this.chunkHeight;
   }
 }

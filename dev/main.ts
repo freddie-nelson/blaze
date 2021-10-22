@@ -21,6 +21,11 @@ const chunkController = blz.setChunkController({
   chunkHeight: 127,
 });
 
+const generator = chunkController.getChunkGenerator();
+generator.addGenerator((chunk) => {
+  chunk.fill(1);
+});
+
 player.enableBlockPicking(
   chunkController,
   40,

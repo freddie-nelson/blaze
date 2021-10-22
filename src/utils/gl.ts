@@ -13,6 +13,14 @@ export interface ShaderProgramInfo {
   };
 }
 
+/**
+ * Creates and compiles a shader from its source.
+ *
+ * @param gl The webgl context to use when creating the shader
+ * @param type The type of shader to create (either `gl.VERTEX_SHADER` or `gl.FRAGMENT_SHADER`)
+ * @param source The shader source as a string
+ * @returns The compiled shader or undefined if there was an error when creating the shader
+ */
 export function createShader(gl: WebGL2RenderingContext, type: number, source: string) {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
@@ -27,6 +35,14 @@ export function createShader(gl: WebGL2RenderingContext, type: number, source: s
   gl.deleteShader(shader);
 }
 
+/**
+ * Creates a {@link WebGLProgram} instance with a vertex and fragment shader.
+ *
+ * @param gl The webgl context to use when creating the program
+ * @param vertexShader The vertex shader of the program
+ * @param fragmentShader The fragment shader of the program
+ * @returns The created program or undefined if there was an error when creating the program
+ */
 export function createProgram(
   gl: WebGL2RenderingContext,
   vertexShader: WebGLShader,
@@ -46,6 +62,14 @@ export function createProgram(
   gl.deleteProgram(program);
 }
 
+/**
+ * Creates each webgl shader and links them together in a {@link WebGLProgram}
+ *
+ * @param gl The webgl context to use when creating the shaders
+ * @param vsSource The source of the vertex shader as a string
+ * @param fsSource The source of the fragment shader as a string
+ * @returns The created {@link WebGLProgram} instance
+ */
 export function createShaderProgram(gl: WebGL2RenderingContext, vsSource: string, fsSource: string) {
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
   const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
@@ -54,12 +78,25 @@ export function createShaderProgram(gl: WebGL2RenderingContext, vsSource: string
   return createProgram(gl, vertexShader, fragmentShader);
 }
 
+/**
+ * Clears the color and depth buffer of the webgl context.
+ *
+ * @param gl The webgl context to clear
+ * @param color The color to use as the clear color
+ */
 export function clear(gl: WebGL2RenderingContext, color: Color = new Color("#000")) {
   gl.clearColor(color.webgl[0], color.webgl[1], color.webgl[2], color.webgl[3]);
   gl.clearDepth(1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
+/**
+ * Creates a {@link WebGLTexture} and loads an image onto it.
+ *
+ * @param gl The {@link WebGL2RenderingContext} to use to load the texture
+ * @param path The path for the texture image
+ * @returns The WebGL texture that was created with the image loaded on it
+ */
 export function loadTexture(gl: WebGL2RenderingContext, path: string) {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);

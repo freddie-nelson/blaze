@@ -1,9 +1,11 @@
 import { vec3 } from "gl-matrix";
 import ChunkController from "../../chunk/controller";
-import { from3Dto1D } from "../../utils/arrays";
 import { getVoxel, VoxelLocation } from "../../voxel";
 import Box from "../box";
 
+/**
+ * Raycaster which can efficiently calculate intersections with chunks in a {@link ChunkController} and Entities.
+ */
 export default class Raycaster {
   private origin: vec3;
   private direction: vec3;
