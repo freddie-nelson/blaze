@@ -14,7 +14,7 @@ const chunkController = blz.setChunkController({
   object: player,
   camera: player.camera,
   worldSize: 10000,
-  renderDist: 12,
+  renderDist: 32,
   chunksPerTick: navigator.hardwareConcurrency,
   bedrock: -127,
   chunkSize: 8,
@@ -28,7 +28,7 @@ generator.addGenerator((chunk) => {
 
 player.enableBlockPicking(
   chunkController,
-  40,
+  128,
   createBuildAndBreakHandler(blz, {
     buildDelay: 0,
     breakDelay: 0,

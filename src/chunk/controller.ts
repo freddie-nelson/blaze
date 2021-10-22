@@ -272,6 +272,8 @@ export default class ChunkController {
         if (!this.geometry[k] || this.replaceGeometry[k]) {
           const pos = this.chunkPos(k);
           const neighbours = this.getChunkNeighbours(pos);
+          const hasAllNeighbours = neighbours.left && neighbours.right && neighbours.front && neighbours.back;
+          if (!hasAllNeighbours) continue;
 
           if (this.replaceGeometry[k]) {
             delete this.pendingGeometry[k];
@@ -280,13 +282,7 @@ export default class ChunkController {
             this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
               this.geometryGenerator.generateChunkGeometry(this.chunks[k], neighbours)
             );
-          } else if (
-            !this.pendingGeometry[k] &&
-            neighbours.left &&
-            neighbours.right &&
-            neighbours.front &&
-            neighbours.back
-          ) {
+          } else if (!this.pendingGeometry[k]) {
             if (this.threadPool) {
               this.pendingGeometry[k] = true;
 
@@ -321,6 +317,7 @@ export default class ChunkController {
    */
   private renderChunks() {
     this.drawn = 0;
+    const positionVec = vec3.create();
 
     for (const k of this.renderQueue) {
       // exit if geometry is still being generated on thread
@@ -328,7 +325,7 @@ export default class ChunkController {
 
       // calculate chunk position
       const position = this.chunkPos(k);
-      const positionVec = vec3.fromValues(position.x * this.size, this.bedrock, position.y * this.size);
+      vec3.set(positionVec, position.x * this.size, this.bedrock, position.y * this.size);
 
       this.renderChunk(this.geometry[k], positionVec);
     }
