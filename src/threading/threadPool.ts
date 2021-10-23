@@ -1,6 +1,6 @@
 import Thread, { ThreadTask } from "./thread";
 export default class ThreadPool {
-  cores = navigator.hardwareConcurrency; // number of workers the browser can run concurrently
+  cores = navigator.hardwareConcurrency || 2; // number of workers the browser can run concurrently
   threads: Thread[] = [];
   poolQueue: ThreadTask[] = []; // used when all thread queues are full
   poolingRate = 100; // ms between each thread check

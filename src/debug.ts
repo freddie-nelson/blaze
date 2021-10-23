@@ -18,6 +18,7 @@ export default class Debug {
   lineMode: HTMLInputElement;
 
   reloadChunks: HTMLButtonElement;
+  fullscreenBtn: HTMLButtonElement;
   showBtn: HTMLButtonElement;
 
   constructor(blz: Blaze) {
@@ -39,15 +40,24 @@ export default class Debug {
     this.queued = this.createText();
     this.camera = this.createText();
     this.frustum = this.createText();
-    this.lineMode = this.createToggle("Draw Lines: ", (val) =>
+    this.lineMode = this.createToggle("Draw Lines: ", (val) => {
       val
         ? chunkController.setDrawMode(WebGL2RenderingContext.LINES)
-        : chunkController.setDrawMode(WebGL2RenderingContext.TRIANGLES)
-    );
+        : chunkController.setDrawMode(WebGL2RenderingContext.TRIANGLES);
+    });
     this.reloadChunks = this.createButton("Reload Chunks", () => {
       chunkController.refreshAllChunks();
     });
     this.reloadChunks.id = "reload-btn";
+
+    this.fullscreenBtn = this.createButton("Toggle Fullscreen", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
     this.showBtn = this.createButton("Show/Hide Menu", () => {
       this.show = !this.show;
 

@@ -14,6 +14,15 @@ export interface BuildAndBreakOptions {
   onBuild?: (i?: number, chunk?: Uint8Array, loc?: VoxelLocation) => void;
 }
 
+/**
+ * Creates a block picking handler which has allows for building and breaking blocks.
+ *
+ * Useful for a minecraft like game.
+ *
+ * @param blz The {@link Blaze} instance the handler will be used in
+ * @param opts The build and break options to use
+ * @returns A block picking handler
+ */
 export function createBuildAndBreakHandler(blz: Blaze, opts: BuildAndBreakOptions) {
   let lastBuildTime = performance.now();
   let lastBreakTime = performance.now();

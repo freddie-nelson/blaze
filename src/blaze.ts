@@ -47,7 +47,7 @@ export default class Blaze {
     window.addEventListener("resize", () => {
       resizeRendererToCanvas(gl, this.resolutionScale);
       if (this.player) {
-        this.player.camera.setProjectionMatrix(gl);
+        this.player.getCamera().setProjectionMatrix(gl);
       }
     });
 

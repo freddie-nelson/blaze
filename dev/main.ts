@@ -1,5 +1,6 @@
 import Blaze from "../lib/src/blaze";
 import { createBuildAndBreakHandler } from "../lib/src/dropins/player/blockPicking";
+import { createVirtualJoystick } from "../lib/src/dropins/player/controls";
 import { addKeyListener } from "../lib/src/keyboard";
 import { isMouseDown, Mouse } from "../lib/src/mouse";
 
@@ -12,12 +13,12 @@ const player = blz.setPlayer();
 const chunkController = blz.setChunkController({
   gl: blz.gl,
   object: player,
-  camera: player.camera,
+  camera: player.getCamera(),
   worldSize: 10000,
-  renderDist: 32,
+  renderDist: 16,
   chunksPerTick: navigator.hardwareConcurrency,
   bedrock: -127,
-  chunkSize: 8,
+  chunkSize: 15,
   chunkHeight: 127,
 });
 
@@ -41,12 +42,19 @@ player.enableBlockPicking(
   })
 );
 
+if ("ontouchstart" in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
+  player.useTouchControls();
+  createVirtualJoystick(document.body, player);
+}
+
 // optifine like zoom
 addKeyListener("KeyC", (pressed) => {
+  const camera = player.getCamera();
+
   if (pressed) {
-    player.camera.setFov(blz.gl, 30);
+    camera.setFov(blz.gl, 30);
   } else {
-    player.camera.setFov(blz.gl, 70);
+    camera.setFov(blz.gl, 70);
   }
 });
 

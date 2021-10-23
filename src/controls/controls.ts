@@ -1,12 +1,13 @@
-import { glMatrix, mat3, mat4, quat, quat2, vec3 } from "gl-matrix";
-import Camera from "./camera";
-import Object3D from "./object3d";
-import Player from "./player";
+import { glMatrix, vec3 } from "gl-matrix";
+import Camera from "../camera";
+import Object3D from "../object3d";
 
-export default class PointerLockControls {
-  private element: HTMLElement;
+/**
+ * Stores common properties and methods for controls.
+ */
+export default abstract class Controls {
+  element: HTMLElement;
   sensitivity: number;
-  isLocked = false;
   movementX = 0;
   movementY = 0;
 
@@ -17,36 +18,34 @@ export default class PointerLockControls {
   object: Object3D;
   camera: Camera;
 
+  /**
+   * Creates a {@link Controls} instance.
+   *
+   * @param element The element to use when handling control events
+   * @param camera The camera to control
+   * @param object An optional object to follow the camera's yaw
+   * @param sensitivity Movement sensitivity
+   */
   constructor(element: HTMLElement, camera: Camera, object?: Object3D, sensitivity: number = 0.1) {
     this.element = element;
     this.camera = camera;
     this.object = object;
     this.sensitivity = sensitivity;
-
-    element.addEventListener("click", () => {
-      if (!this.isLocked) element.requestPointerLock();
-    });
-
-    document.addEventListener("pointerlockchange", () => {
-      this.isLocked = !this.isLocked;
-
-      if (!this.isLocked) {
-        this.movementX = 0;
-        this.movementY = 0;
-      }
-    });
-
-    element.addEventListener("mousemove", (e) => {
-      if (this.isLocked) {
-        this.movementX = e.movementX;
-        this.movementY = e.movementY;
-      }
-    });
   }
 
-  update() {
-    if (!this.isLocked) return;
+  /**
+   * Should update the camera's direction and object's rotation.
+   *
+   * Called every tick.
+   */
+  abstract update(): void;
 
+  /**
+   * Removes all events used for the controls and deals with any extra cleanup needed.
+   */
+  abstract dispose(): void;
+
+  calculateCameraDirection() {
     this.yaw += this.movementX * this.sensitivity;
     this.pitch -= this.movementY * this.sensitivity;
 

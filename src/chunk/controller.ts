@@ -653,7 +653,7 @@ export default class ChunkController {
    * @param drawMode The webgl drawing mode to set the controller's draw mode to
    */
   setDrawMode(drawMode: number) {
-    if (drawMode !== WebGL2RenderingContext.LINES || drawMode !== WebGL2RenderingContext.TRIANGLES) {
+    if (drawMode !== WebGL2RenderingContext.LINES && drawMode !== WebGL2RenderingContext.TRIANGLES) {
       throw new Error(
         "Chunk Controller: Draw mode can only be set to WebGL2RenderingContext.LINES or WebGL2RenderingContext.TRIANGLES"
       );
