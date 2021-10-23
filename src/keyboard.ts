@@ -17,6 +17,15 @@ export function isKeyPressed(code: string) {
   return !!keys[code];
 }
 
+export function setKey(code: string, pressed: boolean) {
+  const type = pressed ? "keydown" : "keyup";
+  const event = new KeyboardEvent(type, {
+    code: code,
+  });
+
+  document.body.dispatchEvent(event);
+}
+
 export function addKeyListener(code: string, cb: cb) {
   if (listeners[code]) {
     listeners[code].push(cb);
