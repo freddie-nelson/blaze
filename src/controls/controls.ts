@@ -50,8 +50,8 @@ export default abstract class Controls {
     this.pitch -= this.movementY * this.sensitivity;
 
     // cap pitch
-    if (this.pitch > 89) this.pitch = 89;
-    else if (this.pitch < -89) this.pitch = -89;
+    if (this.pitch > 89.99) this.pitch = 89.99;
+    else if (this.pitch < -89.99) this.pitch = -89.99;
 
     this.direction[0] = Math.cos(glMatrix.toRadian(this.yaw)) * Math.cos(glMatrix.toRadian(this.pitch));
     this.direction[1] = Math.sin(glMatrix.toRadian(this.pitch));
