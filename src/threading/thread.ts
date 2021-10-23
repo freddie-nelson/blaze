@@ -24,7 +24,7 @@ export default class Thread {
   private inUse = false;
   private currentTask: ThreadTask;
   private queue: ThreadTask[] = [];
-  private maxQueueSize = 10; // maximum size a thread's queue can be before main thread must be used
+  private maxQueueSize = 100; // maximum size a thread's queue can be before main thread must be used
   private id: string;
   private cleanRate = 100; // rate at which the queue is checked for hanging tasks that need to be executed in ms
 

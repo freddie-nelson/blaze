@@ -3,7 +3,7 @@ export default class ThreadPool {
   cores = navigator.hardwareConcurrency || 2; // number of workers the browser can run concurrently
   threads: Thread[] = [];
   poolQueue: ThreadTask[] = []; // used when all thread queues are full
-  poolingRate = 100; // ms between each thread check
+  poolingRate = 100; // ms between each pool clean
 
   /**
    * Creates a {@link ThreadPool} instance, executes any provided startup tasks on it's threads and starts it's cleaning loop.
@@ -28,10 +28,13 @@ export default class ThreadPool {
    * @param queue Wether or not to add the task to the queue if no thread is open
    * @returns true/false depending on wether an open thread was found
    */
-  requestThread(task: ThreadTask, queue: boolean = false): boolean {
-    let openThread = this.threads[0];
+  requestThread(task: ThreadTask, queue: boolean = true): boolean {
+    let openThread: Thread;
     for (const t of this.threads) {
-      if (t.isFree() && t.getNumInQueue() < openThread.getNumInQueue()) {
+      if (
+        t.isFree() &&
+        t.getNumInQueue() < (openThread ? openThread.getNumInQueue() : Number.MAX_SAFE_INTEGER)
+      ) {
         openThread = t;
       }
     }
@@ -63,8 +66,12 @@ export default class ThreadPool {
    */
   private cleanPool() {
     if (this.poolQueue.length !== 0) {
-      for (const task of this.poolQueue) {
-        if (!this.requestThread(task, false)) break;
+      for (let i = this.poolQueue.length - 1; i >= 0; i--) {
+        const task = this.poolQueue[i];
+
+        if (this.requestThread(task, false)) {
+          this.poolQueue.splice(i, 1);
+        } else break;
       }
     }
 

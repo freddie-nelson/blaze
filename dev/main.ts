@@ -18,12 +18,12 @@ const chunkController = blz.setChunkController({
   renderDist: 16,
   chunksPerTick: navigator.hardwareConcurrency,
   bedrock: -127,
-  chunkSize: 15,
+  chunkSize: 8,
   chunkHeight: 127,
 });
 
 const generator = chunkController.getChunkGenerator();
-generator.addGenerator((chunk) => {
+generator.addGenerator((chunk, pos) => {
   chunk.fill(1);
 });
 
