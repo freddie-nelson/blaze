@@ -16,6 +16,7 @@ export default class Debug {
   queued: HTMLSpanElement;
   camera: HTMLSpanElement;
   frustum: HTMLSpanElement;
+  threads: HTMLSpanElement;
 
   lineMode: HTMLInputElement;
 
@@ -42,8 +43,10 @@ export default class Debug {
     this.chunk = this.createText();
     this.chunks = this.createText();
     this.queued = this.createText();
+    this.threads = this.createText();
     this.camera = this.createText();
     this.frustum = this.createText();
+
     this.lineMode = this.createToggle("Draw Lines: ", (val) => {
       val
         ? chunkController.setDrawMode(WebGL2RenderingContext.LINES)
@@ -130,6 +133,10 @@ export default class Debug {
     this.queued.textContent = `Queued { render: ${chunkController.getRenderQueueLength()}, generation: ${chunkController.getQueueLength()} }`;
 
     this.camera.textContent = `Camera { yaw: ${((player.getRotation()[1] / Math.PI) * 180).toFixed(2)} }`;
+
+    this.threads.textContent = `Threads { poolQueue: ${this.blz.getThreadPool().getQueueLength()}, ${this.blz
+      .getThreadPool()
+      .threads.map((t) => `${t.getId()}: ${t.getNumInQueue()}`)} }`;
 
     // const frustum = player.camera.frustum;
     // this.frustum.textContent = `Frustum: { \n__${frustum.planeKeys

@@ -7,7 +7,11 @@ import { isMouseDown, Mouse } from "../lib/src/mouse";
 const blz = new Blaze(<HTMLCanvasElement>document.getElementById("canvas"));
 // blz.setResolutionScale(0.5);
 
-const player = blz.setPlayer();
+const player = blz.setPlayer({
+  movement: {
+    preserveMomentumDirection: true,
+  },
+});
 
 // setup chunk controller
 const chunkController = blz.setChunkController({
@@ -15,7 +19,7 @@ const chunkController = blz.setChunkController({
   object: player,
   camera: player.getCamera(),
   worldSize: 10000,
-  renderDist: 16,
+  renderDist: 32,
   chunksPerTick: 2,
   bedrock: -127,
   chunkSize: 8,

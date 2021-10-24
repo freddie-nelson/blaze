@@ -1,9 +1,10 @@
 import Thread, { ThreadTask } from "./thread";
 export default class ThreadPool {
-  cores = navigator.hardwareConcurrency || 2; // number of workers the browser can run concurrently
+  cores = navigator.hardwareConcurrency || 1; // number of workers the browser can run concurrently
   threads: Thread[] = [];
-  poolQueue: ThreadTask[] = []; // used when all thread queues are full
-  poolingRate = 100; // ms between each pool clean
+
+  private poolQueue: ThreadTask[] = []; // used when all thread queues are full
+  poolingRate = 2000; // ms between each pool clean
 
   /**
    * Creates a {@link ThreadPool} instance, executes any provided startup tasks on it's threads and starts it's cleaning loop.
@@ -12,7 +13,7 @@ export default class ThreadPool {
    */
   constructor(...startupTasks: ThreadTask[]) {
     for (let i = 0; i < this.cores; i++) {
-      this.threads.push(new Thread(`Thread: ${i}`));
+      this.threads.push(new Thread(`Thread ${i}`));
     }
 
     this.everyThread(...startupTasks);
@@ -76,5 +77,14 @@ export default class ThreadPool {
     }
 
     setTimeout(() => this.cleanPool(), this.poolingRate);
+  }
+
+  /**
+   * Gets the length of the pool's queue.
+   *
+   * @returns The pool's queue length
+   */
+  getQueueLength() {
+    return this.poolQueue.length;
   }
 }

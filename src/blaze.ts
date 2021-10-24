@@ -303,6 +303,15 @@ export default class Blaze {
   }
 
   /**
+   * Gets the current thread pool being used.
+   *
+   * @returns The thread pool in use by the engine.
+   */
+  getThreadPool() {
+    return this.threadPool;
+  }
+
+  /**
    * Enables/disables the debug menu.
    */
   toggleDebug() {

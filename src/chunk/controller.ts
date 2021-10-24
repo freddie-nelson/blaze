@@ -325,11 +325,18 @@ export default class ChunkController {
   }
 
   /**
-   * Render's all chunks in the render queue that have geometry.
+   * Renders all chunks in the render queue that have geometry.
    */
   private renderChunks() {
     this.drawn = 0;
+    const gl = this.gl;
     const positionVec = vec3.create();
+
+    // set texture if tilesheet exists
+    if (this.tilesheet) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.tilesheet.texture);
+    }
 
     for (const k of this.renderQueue) {
       // exit if geometry is still being generated on thread
@@ -344,7 +351,7 @@ export default class ChunkController {
   }
 
   /**
-   * Render's a chunk from it's geometry.
+   * Renders a chunk from it's geometry.
    *
    * A chunk is automatically culled if it is outside `this.camera`'s frustum.
    *
@@ -370,20 +377,20 @@ export default class ChunkController {
     }
     this.drawn++;
 
-    // buffer data
+    // put geometry data in buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, geometry.vertices, gl.STATIC_DRAW);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.indices, gl.STATIC_DRAW);
 
-    // bind vertex buffer to shader
     const numComponents = 1;
     const type = gl.FLOAT;
     const normalize = false;
     const stride = 0;
     const offset = 0;
 
+    // bind vertex buffer to shader
     gl.vertexAttribPointer(
       this.shaderProgramInfo.attribLocations.vertex,
       numComponents,
@@ -396,6 +403,7 @@ export default class ChunkController {
 
     gl.useProgram(this.shaderProgramInfo.program);
 
+    // set uniform matrices
     gl.uniformMatrix4fv(
       this.shaderProgramInfo.uniformLocations.projectionViewMatrix,
       false,
@@ -403,10 +411,8 @@ export default class ChunkController {
     );
     gl.uniformMatrix4fv(this.shaderProgramInfo.uniformLocations.modelMatrix, false, modelMatrix);
 
-    // set texture if tilesheet exists
+    // set texture uniforms if tilesheet exists
     if (this.tilesheet) {
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, this.tilesheet.texture);
       gl.uniform1i(this.shaderProgramInfo.uniformLocations.texture, 0);
       gl.uniform1f(this.shaderProgramInfo.uniformLocations.numOfTiles, this.tilesheet.numOfTiles);
     }
