@@ -12,6 +12,7 @@ import Tilesheet from "../tilesheet";
 import ThreadPool from "../threading/threadPool";
 import Object3D from "../object3d";
 import Camera from "../camera";
+import { isObject } from "../utils/objects";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
@@ -38,6 +39,8 @@ export interface ChunkGeometry {
 }
 
 export type ChunkDrawingMode = 1 | 4; // WebGL2RenderingContext.LINES | WebGL2RenderingContext.TRIANGLES
+
+export type Chunks = { [index: string]: Uint8Array };
 
 /**
  * Chunk controller which manages all generation and rendering of chunks around a given object.
@@ -71,7 +74,7 @@ export default class ChunkController {
   private lastCenter: { x: number; y: number } = { x: NaN, y: NaN };
   private chunksPerTick: number;
 
-  private chunks: { [index: string]: Uint8Array } = {};
+  private chunks: Chunks = {};
 
   private geometry: { [index: string]: ChunkGeometry } = {};
   private pendingGeometry: { [index: string]: boolean } = {};
@@ -91,6 +94,28 @@ export default class ChunkController {
    * @param threadPool The thread pool to use for chunk geometry generation.
    */
   constructor(opts: ChunkControllerOptions, threadPool?: ThreadPool) {
+    this.setupFromOptions(<ChunkControllerOptions>opts);
+
+    if (threadPool) {
+      this.threadPool = threadPool;
+      threadPool.everyThread({
+        task: "init-geometry-generator",
+        data: new Uint16Array([this.size, this.height]),
+        // cb: () => console.log("init-geometry-generator"),
+      });
+    }
+
+    this.verticesBuffer = this.gl.createBuffer();
+    this.indicesBuffer = this.gl.createBuffer();
+    this.setupShader(this.gl);
+  }
+
+  /**
+   * Sets up the chunk controller from {@link ChunkControllerOptions}
+   *
+   * @param opts The options to use for setup
+   */
+  private setupFromOptions(opts: ChunkControllerOptions) {
     // validation checks
     if (opts.chunkSize && (opts.chunkSize < 1 || opts.chunkSize > 15))
       throw new Error("Chunk Controller: chunk size must be between 1 and 15 inclusive.");
@@ -115,19 +140,6 @@ export default class ChunkController {
       chunkSize: this.size,
       chunkHeight: this.height,
     });
-
-    if (threadPool) {
-      this.threadPool = threadPool;
-      threadPool.everyThread({
-        task: "init-geometry-generator",
-        data: new Uint16Array([this.size, this.height]),
-        // cb: () => console.log("init-geometry-generator"),
-      });
-    }
-
-    this.verticesBuffer = this.gl.createBuffer();
-    this.indicesBuffer = this.gl.createBuffer();
-    this.setupShader(this.gl);
   }
 
   /**
@@ -603,6 +615,18 @@ export default class ChunkController {
    */
   getChunksPerTick() {
     return this.chunksPerTick;
+  }
+
+  /**
+   * Sets the loaded chunks the controller will use.
+   *
+   * **If the new chunks do not match the `size` and `height` set in the controller there will be bugs.**
+   *
+   * @param chunks The new chunks to use
+   */
+  setChunks(chunks: Chunks) {
+    this.chunks = chunks;
+    this.refreshAllChunks();
   }
 
   /**

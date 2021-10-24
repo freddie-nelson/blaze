@@ -1,4 +1,5 @@
 import Blaze from "./blaze";
+import ChunkParser from "./chunk/parser";
 
 export default class Debug {
   blz: Blaze;
@@ -19,6 +20,8 @@ export default class Debug {
 
   reloadChunks: HTMLButtonElement;
   fullscreenBtn: HTMLButtonElement;
+  exportBtn: HTMLButtonElement;
+  importBtn: HTMLButtonElement;
   showBtn: HTMLButtonElement;
 
   constructor(blz: Blaze) {
@@ -56,6 +59,21 @@ export default class Debug {
       } else {
         document.exitFullscreen();
       }
+    });
+
+    this.exportBtn = this.createButton("Export Chunks", () => {
+      const chunks = this.blz.getChunkController().getChunks();
+      const str = ChunkParser.chunksToString(chunks);
+
+      localStorage.setItem("debug_chunks", str);
+    });
+
+    this.importBtn = this.createButton("Import Chunks", () => {
+      const str = localStorage.getItem("debug_chunks");
+      if (!str) return;
+
+      const chunks = ChunkParser.stringToChunks(str);
+      this.blz.getChunkController().setChunks(chunks);
     });
 
     this.showBtn = this.createButton("Show/Hide Menu", () => {
