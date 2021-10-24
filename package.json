@@ -40,7 +40,9 @@
     "dev:production": "npm run clean && tsc-watch --onSuccess 'node ./replaceShaders.js' & npm run dev \n wait; npm run dev:kill",
     "dev:kill": "kill %1"
   },
-  "dependencies": {},
+  "dependencies": {
+    "lzutf8": "^0.6.0"
+  },
   "devDependencies": {
     "gl-matrix": "^3.4.3",
     "live-server": "^1.2.1",

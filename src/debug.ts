@@ -1,3 +1,4 @@
+import LZUTF8 from "lzutf8";
 import Blaze from "./blaze";
 import ChunkParser from "./chunk/parser";
 

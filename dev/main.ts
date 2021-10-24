@@ -16,7 +16,7 @@ const chunkController = blz.setChunkController({
   camera: player.getCamera(),
   worldSize: 10000,
   renderDist: 16,
-  chunksPerTick: navigator.hardwareConcurrency,
+  chunksPerTick: 2,
   bedrock: -127,
   chunkSize: 8,
   chunkHeight: 127,

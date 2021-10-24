@@ -60,9 +60,13 @@ class BlazeWorker {
   }
 
   chunkGeometry(data: { chunk: Uint8Array; neighbours: Neighbours<Uint8Array> }) {
-    return this.geometryGenerator.convertGeoToTypedArrs(
-      this.geometryGenerator.generateChunkGeometry(data.chunk, data.neighbours)
-    );
+    try {
+      return this.geometryGenerator.convertGeoToTypedArrs(
+        this.geometryGenerator.generateChunkGeometry(data.chunk, data.neighbours)
+      );
+    } catch (error) {
+      console.log("Worker: Error while generating chunk geometry.\n", data.chunk);
+    }
   }
 }
 

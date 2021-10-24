@@ -1,3 +1,5 @@
+import LZUTF8 from "lzutf8";
+
 import ChunkController, { Chunks } from "./controller";
 
 /**
@@ -7,9 +9,12 @@ export default class ChunkParser {
   /**
    * Turns the provided chunks into a string that can be exported/saved.
    *
+   * It is highly recommended to let the final string be compressed or implement your own more efficient saving algorithm.
+   *
    * @param chunks The chunks to create the string from
+   * @param compress Wether or not to compress the returned string using [LZUTF8](https://github.com/rotemdan/lzutf8.js/)
    */
-  static chunksToString(chunks: Chunks): string {
+  static chunksToString(chunks: Chunks, compress = true): string {
     const keys = Object.keys(chunks);
     if (keys.length === 0) return "";
 
@@ -20,16 +25,19 @@ export default class ChunkParser {
       str += `${k}[${chunk.toString()}]|`;
     }
 
-    return str;
+    return compress ? LZUTF8.compress(str, { outputEncoding: "StorageBinaryString" }) : str;
   }
 
   /**
    * Turns the provided string from `this.chunksToString` back into the original chunks.
    *
    * @param str The string to parse into chunks
+   * @param compress Wether or not the provided string needs decompressed
    */
-  static stringToChunks(str: string): Chunks {
+  static stringToChunks(data: string, decompress = true): Chunks {
+    const str = decompress ? LZUTF8.decompress(data, { inputEncoding: "StorageBinaryString" }) : data;
     const chunks: Chunks = {};
+
     let length = 0;
     let curr = 0;
     let key = "";

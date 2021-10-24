@@ -27,10 +27,6 @@ module.exports = {
         //   silent: true,
         // },
       },
-      {
-        test: /\.glsl$/,
-        loader: "raw-loader",
-      },
     ],
   },
 };
