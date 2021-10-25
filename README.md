@@ -13,11 +13,11 @@ A fast and simple WebGL 2 voxel game engine written in TypeScript
 # Installation
 
 ```bash
-npm install blaze-engine
-# or
-yarn add blaze-engine
+yarn install blaze-engine
 ```
+
+**NOTE: Some scripts may not work without yarn.**
 
 # Documentation
 
-[IN PROGRESS]
+You can find the documentation and API reference [here](https://blazeengine.netlify.app)

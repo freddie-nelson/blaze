@@ -39,7 +39,9 @@
     "dev": "webpack watch --config dev/webpack.config.js",
     "dev:production": "npm run clean && tsc-watch --onSuccess 'node ./replaceShaders.js' & npm run dev \n wait; npm run dev:kill",
     "dev:kill": "kill %1",
-    "docs:build": "cd ./docs && yarn && yarn build"
+    "docs:deps": "cd ./docs && yarn",
+    "docs:build": "yarn docs:deps && cd ./docs && yarn build",
+    "docs:serve": "yarn docs:deps && cd ./docs && yarn start"
   },
   "dependencies": {
     "lzutf8": "^0.6.0"

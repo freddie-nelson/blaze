@@ -38,7 +38,8 @@ export default class Blaze {
   /**
    * Initializes the engine and creates the renderer.
    *
-   * @param canvas The canvas to use to create the renderer.
+   * @param canvas The canvas to use to create the renderer
+   * @param opts The options to use when setting up the engine
    */
   constructor(canvas: HTMLCanvasElement, opts: BlazeOptions = defaultOpts) {
     const gl = createRenderer(canvas, { antialias: opts.antialias });
@@ -90,7 +91,7 @@ export default class Blaze {
   /**
    * Adds a hook to the update loop which will be called at the start of each update cycle.
    *
-   * @param hook The hook to be added to the engine's update hooks.
+   * @param hook The hook to be added to the engine's update hooks
    */
   addBeforeUpdateListener(hook: UpdateHook) {
     this.beforeUpdate.push(hook);
@@ -99,8 +100,8 @@ export default class Blaze {
   /**
    * Removes a hook from the engine's before update listeners if it exists.
    *
-   * @param hook The hook to remove.
-   * @returns True if the hook was remove, otherwise false.
+   * @param hook The hook to remove
+   * @returns True if the hook was remove, otherwise false
    */
   removeBeforeUpdateListener(hook: UpdateHook) {
     const i = this.beforeUpdate.findIndex((h) => hook === h);
@@ -113,7 +114,7 @@ export default class Blaze {
   /**
    * Adds a hook to the update loop which will be called at the end of each update cycle.
    *
-   * @param hook The hook to be added to the engine's update hooks.
+   * @param hook The hook to be added to the engine's update hooks
    */
   addAfterUpdateListener(hook: UpdateHook) {
     this.afterUpdate.push(hook);
@@ -122,8 +123,8 @@ export default class Blaze {
   /**
    * Removes a hook from the engine's after update listeners if it exists.
    *
-   * @param hook The hook to remove.
-   * @returns True if the hook was remove, otherwise false.
+   * @param hook The hook to remove
+   * @returns True if the hook was remove, otherwise false
    */
   removeAfterUpdateListener(hook: UpdateHook) {
     const i = this.afterUpdate.findIndex((h) => hook === h);
@@ -159,16 +160,16 @@ export default class Blaze {
   /**
    * Sets the engine's player from a {@link Player} instance.
    *
-   * @param p The {@link Player} instance to set the engine's player to.
-   * @returns The set {@link Player} instance.
+   * @param p The {@link Player} instance to set the engine's player to
+   * @returns The set {@link Player} instance
    */
   setPlayer(p: Player): Player;
 
   /**
    * Sets the engine's player from a {@link PlayerOptions} object.
    *
-   * @param opts The options to use when instantiating the player.
-   * @returns The set {@link Player} instance.
+   * @param opts The options to use when instantiating the player
+   * @returns The set {@link Player} instance
    */
   setPlayer(opts?: PlayerOptions): Player;
 
@@ -185,7 +186,7 @@ export default class Blaze {
   /**
    * Gets the engine's current player.
    *
-   * @returns The engine's current player or undefined.
+   * @returns The engine's current player or undefined
    */
   getPlayer(): Player {
     return this.player;
@@ -194,16 +195,16 @@ export default class Blaze {
   /**
    * Sets the engine's chunk controller from a {@link ChunkController} instance.
    *
-   * @param c The {@link ChunkController} instance to set the engine's chunk controller to.
-   * @returns The set {@link ChunkController} instance.
+   * @param c The {@link ChunkController} instance to set the engine's chunk controller to
+   * @returns The set {@link ChunkController} instance
    */
   setChunkController(c: ChunkController): ChunkController;
 
   /**
    * Sets the engine's chunk controller from a {@link ChunkControllerOptions} object.
    *
-   * @param opts The options to use when instantiating the chunk controller.
-   * @returns The set {@link ChunkController} instance.
+   * @param opts The options to use when instantiating the chunk controller
+   * @returns The set {@link ChunkController} instance
    */
   setChunkController(opts: ChunkControllerOptions): ChunkController;
 
@@ -220,7 +221,7 @@ export default class Blaze {
   /**
    * Gets the engine's current chunk controller.
    *
-   * @returns The engine's current chunk controller or undefined.
+   * @returns The engine's current chunk controller or undefined
    */
   getChunkController(): ChunkController {
     return this.chunkController;
@@ -234,11 +235,11 @@ export default class Blaze {
    * For an example of a valid tilesheet [see here](https://raw.githubusercontent.com/freddie-nelson/blaze/master/dev/tilesheet.png)
    *
    * @param path A path or url to the tilesheet bitmap image (Supports `.jpg`, `.jpeg`, `.png`)
-   * @param tileSize The width and height of each individual tile in the tilesheet.
-   * @param numOfTiles The number of different tiles in the tilesheet.
-   * @returns The set {@link Tilesheet} instance.
+   * @param tileSize The width and height of each individual tile in the tilesheet
+   * @param numOfTiles The number of different tiles in the tilesheet
+   * @returns The set {@link Tilesheet} instance
    *
-   * @throws If the engine's chunk controller has not been set.
+   * @throws If the engine's chunk controller has not been set
    */
   setTilesheet(path: string, tileSize: number, numOfTiles: number) {
     if (!this.chunkController)
@@ -259,16 +260,16 @@ export default class Blaze {
   /**
    * Sets the clear color to be used when clearing the webgl buffer, mimics having a sky color.
    *
-   * @param color The {@link Color} instance to set the engine's sky color to.
-   * @returns The set {@link Color} instance.
+   * @param color The {@link Color} instance to set the engine's sky color to
+   * @returns The set {@link Color} instance
    */
   setSkyColor(color: Color): Color;
 
   /**
    * Sets the clear color to be used when clearing the webgl buffer, mimics having a sky color.
    *
-   * @param color The {@link ColorLike} representation to use when instantiating the sky color.
-   * @returns The set {@link Color} instance.
+   * @param color The {@link ColorLike} representation to use when instantiating the sky color
+   * @returns The set {@link Color} instance
    */
   setSkyColor(color: ColorLike): Color;
 
@@ -285,7 +286,7 @@ export default class Blaze {
   /**
    * Gets the engine's current sky color.
    *
-   * @returns The engine's current sky color.
+   * @returns The engine's current sky color
    */
   getSkyColor(): Color {
     return this.skyColor;
@@ -296,7 +297,7 @@ export default class Blaze {
    *
    * @see Uses [performance.now](https://developer.mozilla.org/en-US/docs/Web/API/Performance/now)
    *
-   * @returns The time of the last update.
+   * @returns The time of the last update
    */
   getLastUpdateTime() {
     return this.lastUpdateTime;
@@ -305,7 +306,7 @@ export default class Blaze {
   /**
    * Gets the current thread pool being used.
    *
-   * @returns The thread pool in use by the engine.
+   * @returns The thread pool in use by the engine
    */
   getThreadPool() {
     return this.threadPool;
