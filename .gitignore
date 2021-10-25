@@ -8,7 +8,7 @@ dev/*.js
 
 # docs
 docs/node_modules
-docs/docs
+docs/docs/api
 docs/build
 docs/.docusaurus
 docs/.cache-loader
