@@ -1,7 +1,7 @@
 import { mat4, vec3 } from "gl-matrix";
 
 /**
- * A generic interface to represent any 3D objects neighbours in a grid.
+ * A generic interface to represent any 3D object's neighbours in a grid.
  */
 export interface Neighbours<T> {
   [index: string]: T;

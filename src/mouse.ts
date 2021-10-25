@@ -7,10 +7,13 @@ export enum Mouse {
   RIGHT = 2,
 }
 
-type cb = (pressed: boolean) => void;
+/**
+ * A callback to be executed on mouse button events.
+ */
+export type MouseCallback = (pressed: boolean) => void;
 
 const buttons: { [index: number]: boolean } = {};
-const listeners: { [index: number]: cb[] } = {};
+const listeners: { [index: number]: MouseCallback[] } = {};
 
 document.body.addEventListener("mousedown", (e) => {
   buttons[e.button] = true;
@@ -38,7 +41,7 @@ export function isMouseDown(button = Mouse.LEFT) {
  * @param button The {@link Mouse} button to attach the listener to
  * @param cb The callback to execute on a mousedown/mouseup event
  */
-export function addMouseListener(button: Mouse, cb: cb) {
+export function addMouseListener(button: Mouse, cb: MouseCallback) {
   if (listeners[button]) {
     listeners[button].push(cb);
   } else {
@@ -52,7 +55,7 @@ export function addMouseListener(button: Mouse, cb: cb) {
  * @param button The {@link Mouse} button the listener is attached to
  * @param cb The attached listener
  */
-export function removeMouseListener(button: Mouse, cb: cb) {
+export function removeMouseListener(button: Mouse, cb: MouseCallback) {
   if (listeners[button]) {
     for (let i = 0; i < listeners[button].length; i++) {
       if (cb === listeners[button][i]) {

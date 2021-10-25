@@ -10,10 +10,6 @@ A fast and simple WebGL 2 voxel game engine written in TypeScript
 - Simple and well documented API
 - Be easy to extend
 
-# Overview
-
-If you would like to read a high level overview of Blaze's architecture you can find it [here](DESIGN.md)
-
 # Installation
 
 ```bash

@@ -1,7 +1,10 @@
-type cb = (pressed: boolean) => void;
+/**
+ * A callback to be executed on key events.
+ */
+export type KeyCallback = (pressed: boolean) => void;
 
 const keys: { [index: string]: boolean } = {};
-const listeners: { [index: string]: cb[] } = {};
+const listeners: { [index: string]: KeyCallback[] } = {};
 
 document.body.addEventListener("keydown", (e) => {
   keys[e.code] = true;
@@ -48,7 +51,7 @@ export function setKey(code: string, pressed: boolean) {
  * @param code The key code to attach the listener to
  * @param cb The callback to execute on a keydown/keyup event
  */
-export function addKeyListener(code: string, cb: cb) {
+export function addKeyListener(code: string, cb: KeyCallback) {
   if (listeners[code]) {
     listeners[code].push(cb);
   } else {
@@ -62,7 +65,7 @@ export function addKeyListener(code: string, cb: cb) {
  * @param code The key code the listener is attached to
  * @param cb The attached listener
  */
-export function removeKeyListener(code: string, cb: cb) {
+export function removeKeyListener(code: string, cb: KeyCallback) {
   if (listeners[code]) {
     for (let i = 0; i < listeners[code].length; i++) {
       if (cb === listeners[code][i]) {
