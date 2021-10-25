@@ -1,3 +1,4 @@
+import { vec3 } from "gl-matrix";
 import Blaze from "../lib/src/blaze";
 import { createBuildAndBreakHandler } from "../lib/src/dropins/player/blockPicking";
 import { createVirtualJoystick } from "../lib/src/dropins/player/controls";
@@ -5,11 +6,13 @@ import { addKeyListener } from "../lib/src/keyboard";
 import { isMouseDown, Mouse } from "../lib/src/mouse";
 
 const blz = new Blaze(<HTMLCanvasElement>document.getElementById("canvas"));
-// blz.setResolutionScale(0.5);
+blz.setResolutionScale(0.5);
 
 const player = blz.setPlayer({
   movement: {
     preserveMomentumDirection: true,
+    sprintAccelerationMultiplier: 20,
+    maxVelocity: vec3.fromValues(100, 10, 100),
   },
 });
 
@@ -19,7 +22,7 @@ const chunkController = blz.setChunkController({
   object: player,
   camera: player.getCamera(),
   worldSize: 10000,
-  renderDist: 32,
+  renderDist: 16,
   chunksPerTick: 2,
   bedrock: -127,
   chunkSize: 8,

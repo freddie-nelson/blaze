@@ -4,3 +4,4 @@ yarn-error.log
 lib
 dev/main.d.ts
 dev/*.js
+docs

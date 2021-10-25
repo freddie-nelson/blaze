@@ -1,0 +1,6 @@
+{
+  "name": "Blaze Docs",
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "out": "docs"
+}
