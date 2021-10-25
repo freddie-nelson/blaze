@@ -40,8 +40,8 @@
     "dev:production": "npm run clean && tsc-watch --onSuccess 'node ./replaceShaders.js' & npm run dev \n wait; npm run dev:kill",
     "dev:kill": "kill %1",
     "docs:deps": "cd ./docs && yarn",
-    "docs:build": "yarn docs:deps && cd ./docs && yarn build",
-    "docs:serve": "yarn docs:deps && cd ./docs && yarn start"
+    "docs:build": "yarn docs:deps && mkdir -p docs/docs && cd ./docs && yarn build",
+    "docs:serve": "yarn docs:deps && && mkdir -p docs/docs && cd ./docs && yarn start"
   },
   "dependencies": {
     "lzutf8": "^0.6.0"
