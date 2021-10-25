@@ -6,11 +6,10 @@ import GeometryGenerator from "./geometry";
 import vsChunk from "../shaders/chunk/vertex.glsl";
 import fsChunk from "../shaders/chunk/fragment.glsl";
 import { mat4, vec2, vec3 } from "gl-matrix";
-import { Neighbours } from "../voxel";
 import Box from "../physics/box";
 import Tilesheet from "../tilesheet";
 import ThreadPool from "../threading/threadPool";
-import Object3D from "../object3d";
+import Object3D, { Neighbours } from "../object3d";
 import Camera from "../camera";
 import { isObject } from "../utils/objects";
 

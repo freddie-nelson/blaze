@@ -1,5 +1,8 @@
 import Color from "./color";
 
+/**
+ * Stores information about a {@link WebGLProgram}, such as it's attribute and uniform locations.
+ */
 export interface ShaderProgramInfo {
   program: WebGLProgram;
   attribLocations: {

@@ -3,10 +3,20 @@ import Object3D from "./object3d";
 import Box from "./physics/box";
 import Cuboid from "./shapes/cuboid";
 
+/**
+ * Represents a generic entity in 3D space.
+ */
 export default class Entity extends Object3D {
   private pieces: Cuboid[];
   boundingBox: Box;
 
+  /**
+   * Creates a new {@link Entity} instance with a position, bounding box and body pieces.
+   *
+   * @param position The entity's position in world space
+   * @param boundingBox The entity's bounding box to use for collisions/physics
+   * @param pieces The entity's body pieces for rendering
+   */
   constructor(position: vec3, boundingBox: Box, pieces: Cuboid[] = []) {
     super();
     this.setPosition(position);

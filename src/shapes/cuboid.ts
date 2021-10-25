@@ -62,11 +62,22 @@ const indices = [
   23, // left
 ];
 
+/**
+ * Represents a Cuboid in 3D space with a width, height and depth.
+ */
 export default class Cuboid extends Object3D {
   private width: number;
   private height: number;
   private depth: number;
 
+  /**
+   * Creates a new {@link Cuboid} instance with a position and dimensions.
+   *
+   * @param position The cuboid's position in world space
+   * @param width The width of the cuboid (x size)
+   * @param height The height of the cuboid (y size)
+   * @param depth The depth of the cuboid (z size)
+   */
   constructor(position: vec3, width: number, height: number, depth: number) {
     super();
     this.setPosition(position);
@@ -76,6 +87,11 @@ export default class Cuboid extends Object3D {
     this.depth = depth;
   }
 
+  /**
+   * Calculates the cuboid's vertex positions based on the cuboid's dimensions.
+   *
+   * @returns The cuboid's geometry (vertices and indices)
+   */
   getGeometry() {
     const bv = {
       frb: this.vertexAdd(baseVertices.frb, [0, 0, this.depth]),
@@ -133,6 +149,12 @@ export default class Cuboid extends Object3D {
     };
   }
 
+  /**
+   * Calculates the cuboid's vertex positions with the origin vector added to them.
+   *
+   * @param origin The vec3 to get the vertices position relative to.
+   * @returns
+   */
   getGeometryRelative(origin: vec3) {
     const geo = this.getGeometry();
 

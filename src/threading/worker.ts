@@ -1,5 +1,5 @@
 import GeometryGenerator from "../chunk/geometry";
-import { Neighbours } from "../voxel";
+import { Neighbours } from "../object3d";
 import { ThreadTaskData, ThreadTaskDataObject } from "./thread";
 
 export interface WorkerMessage {

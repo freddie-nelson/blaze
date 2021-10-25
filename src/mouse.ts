@@ -1,3 +1,6 @@
+/**
+ * Enum for {@link MouseEvent.button} numbers
+ */
 export enum Mouse {
   LEFT = 0,
   MIDDLE = 1,
@@ -19,10 +22,22 @@ document.body.addEventListener("mouseup", (e) => {
   listeners[e.button]?.forEach((cb) => cb(false));
 });
 
+/**
+ * Determines wether the given mouse button is pressed.
+ *
+ * @param button The {@link Mouse} button to check
+ * @returns Wether the given button is pressed or not
+ */
 export function isMouseDown(button = Mouse.LEFT) {
   return !!buttons[button];
 }
 
+/**
+ * Attaches a listener to a given mouse button that is called whenever the state of the button changes.
+ *
+ * @param button The {@link Mouse} button to attach the listener to
+ * @param cb The callback to execute on a mousedown/mouseup event
+ */
 export function addMouseListener(button: Mouse, cb: cb) {
   if (listeners[button]) {
     listeners[button].push(cb);
@@ -31,6 +46,12 @@ export function addMouseListener(button: Mouse, cb: cb) {
   }
 }
 
+/**
+ * Removes a listener from a given mouse button.
+ *
+ * @param button The {@link Mouse} button the listener is attached to
+ * @param cb The attached listener
+ */
 export function removeMouseListener(button: Mouse, cb: cb) {
   if (listeners[button]) {
     for (let i = 0; i < listeners[button].length; i++) {

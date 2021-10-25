@@ -1,3 +1,6 @@
+/**
+ * Stores the color values for a RGBA color.
+ */
 export interface RGBAColor {
   r: number;
   g: number;
@@ -5,6 +8,9 @@ export interface RGBAColor {
   a?: number;
 }
 
+/**
+ * A value that can be parsed by a {@link Color} instance.
+ */
 export type ColorLike = RGBAColor | string;
 
 /**

@@ -1,6 +1,23 @@
 import { mat4, vec3 } from "gl-matrix";
 
 /**
+ * A generic interface to represent any 3D objects neighbours in a grid.
+ */
+export interface Neighbours<T> {
+  [index: string]: T;
+  left?: T;
+  right?: T;
+  bottom?: T;
+  top?: T;
+  front?: T;
+  back?: T;
+  fl?: T;
+  fr?: T;
+  bl?: T;
+  br?: T;
+}
+
+/**
  * Represents an object in 3D space with a position and rotation
  */
 export default class Object3D {

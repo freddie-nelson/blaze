@@ -2,6 +2,9 @@ import { glMatrix, mat4, vec3 } from "gl-matrix";
 import Frustum from "./frustum";
 import Object3D from "./object3d";
 
+/**
+ * Represents a virtual camera in 3D space.
+ */
 export default class Camera extends Object3D {
   private fov: number;
   private near: number;
@@ -17,6 +20,14 @@ export default class Camera extends Object3D {
 
   frustum: Frustum;
 
+  /**
+   * Creates a {@link Camera} instance and instantiates it's {@link Frustum}.
+   *
+   * @param gl The webgl context to grab canvas dimensions from
+   * @param fov The fov of the camera
+   * @param near The near distance of the camera frustum
+   * @param far The far distance of the camera's frustum
+   */
   constructor(gl: WebGL2RenderingContext, fov?: number, near?: number, far?: number) {
     super();
 
@@ -34,6 +45,14 @@ export default class Camera extends Object3D {
     this.setProjectionMatrix(gl, glMatrix.toRadian(fov));
   }
 
+  /**
+   * Calculates the camera's new projection matrix from the given parameters.
+   *
+   * @param gl The webgl context to grab canvas dimensions from
+   * @param fov The fov to use (in degrees)
+   * @param near The near distance of the camera's frustum
+   * @param far The far distance of the camera's frustum
+   */
   setProjectionMatrix(
     gl: WebGL2RenderingContext,
     fov: number = (70 * Math.PI) / 180,
@@ -51,10 +70,22 @@ export default class Camera extends Object3D {
     this.frustum.update(this);
   }
 
+  /**
+   * Gets the camera's projection matrix.
+   *
+   * @returns The camera's projection matrix
+   */
   getProjectionMatrix() {
     return this.projectionMatrix;
   }
 
+  /**
+   * Calculates and returns the camera's view matrix.
+   *
+   * **NOTE: Everytime this function is called the view matrix is recalculated.**
+   *
+   * @returns The camera's view matrix
+   */
   getViewMatrix() {
     const vMatrix = mat4.create();
     mat4.translate(vMatrix, vMatrix, this.getPosition());
@@ -66,10 +97,18 @@ export default class Camera extends Object3D {
     return mat4.invert(vMatrix, vMatrix);
   }
 
+  /**
+   * Gets the camera's projection view matrix, the product of the projection and view matrices.
+   *
+   * @returns The camera's projection view matrix
+   */
   getProjectionViewMatrix() {
     return mat4.multiply(mat4.create(), this.projectionMatrix, this.getViewMatrix());
   }
 
+  /**
+   * Updates the camera's frustum if the camera has changed position or direction.
+   */
   update() {
     // console.log(
     //   !vec3.equals(this.getPosition(), this.lastPosition) || !vec3.equals(this.direction, this.lastDirection)

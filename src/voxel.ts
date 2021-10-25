@@ -1,19 +1,8 @@
 import { vec3 } from "gl-matrix";
 
-export interface Neighbours<T> {
-  [index: string]: T;
-  left?: T;
-  right?: T;
-  bottom?: T;
-  top?: T;
-  front?: T;
-  back?: T;
-  fl?: T;
-  fr?: T;
-  bl?: T;
-  br?: T;
-}
-
+/**
+ * Represents a voxel's position in world space using it's container chunk's coordinate and the voxel's local position within the chunk.
+ */
 export interface VoxelLocation {
   chunk: {
     x: number;
@@ -24,13 +13,18 @@ export interface VoxelLocation {
   z: number;
 }
 
+/**
+ * Stores the geometry for a single face on a voxel.
+ */
 export interface Face {
   uvCol: number;
   normal: number;
   corners: { pos: number[]; uv: number[] }[];
 }
 
-// face geometry
+/**
+ * All the geometry data needed to create a single voxel.
+ */
 export const faces: { [index: string]: Face } = {
   left: {
     uvCol: 1,

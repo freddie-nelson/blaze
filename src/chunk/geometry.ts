@@ -1,5 +1,6 @@
+import { Neighbours } from "../object3d";
 import { from3Dto1D } from "../utils/arrays";
-import { faces, Neighbours } from "../voxel";
+import { faces } from "../voxel";
 
 export interface GeometryGeneratorOptions {
   chunkSize: number;

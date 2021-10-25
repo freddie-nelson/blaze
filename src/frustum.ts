@@ -3,6 +3,9 @@ import Camera from "./camera";
 import Box from "./physics/box";
 import Plane from "./physics/plane";
 
+/**
+ * Enum for a {@link Frustum}'s planes array.
+ */
 enum Planes {
   TOP,
   BOTTOM,
@@ -12,6 +15,11 @@ enum Planes {
   FAR,
 }
 
+/**
+ * Represents a camera's frustum.
+ *
+ * Can be used to perform frustum culling, among other things.
+ */
 export default class Frustum {
   aspect: number;
   fov: number;
@@ -25,8 +33,19 @@ export default class Frustum {
 
   planes: Plane[] = [new Plane(), new Plane(), new Plane(), new Plane(), new Plane(), new Plane()];
 
+  /**
+   * Creates a {@link Frustum} instance.
+   */
   constructor() {}
 
+  /**
+   * Sets the new dimensions to use when calculating the frustum's planes.
+   *
+   * @param fov The new fov to use for frustum calculations (in radians)
+   * @param near The new near distance to use for frustum calculations
+   * @param far The new far distance to use for frustum calculations
+   * @param aspect The new aspect ratio to use for frustum calculations
+   */
   resize(fov: number, near: number, far: number, aspect: number) {
     this.fov = fov;
     this.nearDist = near;
@@ -41,6 +60,15 @@ export default class Frustum {
     this.farWidth = this.farHeight * aspect;
   }
 
+  /**
+   * Calculates the provided {@link Camera}'s frustum and updates the stored frustum.
+   *
+   * All of the frustum's plane's normals point towards the inside of the frustum.
+   *
+   * For more info on how the frustum is calculated see [here](http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-implementation/)
+   *
+   * @param camera The camera to calculate a frustum for
+   */
   update(camera: Camera) {
     const p = camera.getPosition();
 
@@ -111,9 +139,16 @@ export default class Frustum {
     this.planes[Planes.RIGHT].set3Points(nbr, ntr, fbr);
     this.planes[Planes.NEAR].set3Points(ntl, ntr, nbr);
     this.planes[Planes.FAR].set3Points(ftr, ftl, fbl);
-    // console.log(ntr, X);
   }
 
+  /**
+   * Determines wether the provided box is inside the frustum.
+   *
+   * This is true when at least on of the box's vertices are on the positive halfside of all of the frustum's planes.
+   *
+   * @param box The box to check against the frustum's planes
+   * @returns Wether or not the box is inside the frustum
+   */
   containsBox(box: Box) {
     const points = box.getPoints();
     let result = true;
