@@ -13,7 +13,7 @@ A fast and simple WebGL 2 voxel game engine written in TypeScript
 # Installation
 
 ```bash
-yarn install blaze-engine
+yarn add blaze-engine
 ```
 
 **NOTE: Some scripts may not work without yarn.**
