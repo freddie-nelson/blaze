@@ -1,13 +1,3 @@
-/*!
- LZ-UTF8 v0.5.8
-
- Copyright (c) 2021, Rotem Dan
- Released under the MIT license.
-
- Build date: 2021-02-24 
-
- Please report any issue at https://github.com/rotemdan/lzutf8.js/issues
-*/
 var IE10SubarrayBugPatcher, LZUTF8;
 !(function (n) {
   (n.runningInNodeJS = function () {
