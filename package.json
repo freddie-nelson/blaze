@@ -43,9 +43,7 @@
     "docs:build": "yarn docs:deps && mkdir -p docs/docs && cd ./docs && yarn build",
     "docs:serve": "yarn docs:deps && mkdir -p docs/docs && cd ./docs && yarn start"
   },
-  "dependencies": {
-    "lzutf8": "^0.6.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "gl-matrix": "^3.4.3",
     "nodemon": "^2.0.13",
