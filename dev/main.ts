@@ -6,15 +6,14 @@ import { addKeyListener } from "../lib/src/keyboard";
 import { isMouseDown, Mouse } from "../lib/src/mouse";
 
 const blz = new Blaze(<HTMLCanvasElement>document.getElementById("canvas"));
-blz.setResolutionScale(0.5);
 
 const player = blz.setPlayer({
   movement: {
     preserveMomentumDirection: true,
-    sprintAccelerationMultiplier: 20,
-    maxVelocity: vec3.fromValues(100, 10, 100),
   },
 });
+
+player.getCamera().setFov(blz.gl, 90);
 
 // setup chunk controller
 const chunkController = blz.setChunkController({
@@ -49,7 +48,7 @@ player.enableBlockPicking(
   })
 );
 
-if ("ontouchstart" in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
+if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
   player.useTouchControls();
   createVirtualJoystick(document.body, player);
 }

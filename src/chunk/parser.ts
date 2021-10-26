@@ -1,4 +1,4 @@
-import LZUTF8 from "lzutf8";
+import LZUTF8 from "../../includes/LZUTF8/lzutf8";
 
 import ChunkController, { Chunks } from "./controller";
 

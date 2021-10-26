@@ -28,9 +28,11 @@ class BlazeWorker {
     let data;
     switch (task.task) {
       case "init-geometry-generator":
+        const arr = task.data as Uint16Array;
         this.geometryGenerator = new GeometryGenerator({
-          chunkSize: (task.data as Uint16Array)[0],
-          chunkHeight: (task.data as Uint16Array)[1],
+          chunkSize: arr[0],
+          chunkHeight: arr[1],
+          excludeList: new Uint8Array(arr.slice(2)),
         });
         break;
       case "chunk-geometry":
@@ -61,9 +63,7 @@ class BlazeWorker {
 
   chunkGeometry(data: { chunk: Uint8Array; neighbours: Neighbours<Uint8Array> }) {
     try {
-      return this.geometryGenerator.convertGeoToTypedArrs(
-        this.geometryGenerator.generateChunkGeometry(data.chunk, data.neighbours)
-      );
+      return this.geometryGenerator.generateChunkGeometryGPU(data.chunk, data.neighbours);
     } catch (error) {
       console.log("Worker: Error while generating chunk geometry.\n", data.chunk);
     }

@@ -107,7 +107,7 @@ export default class Player extends Object3D {
 
   // camera
   private camera: Camera;
-  private cameraPos = vec3.fromValues(0, this.height, 0);
+  private cameraPos = vec3.fromValues(0, this.height * 0.9, 0);
   private controls: Controls;
 
   options: PlayerOptions;

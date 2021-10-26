@@ -113,27 +113,27 @@ export default class Object3D {
   }
 
   /**
-   * Sets the x component of the object's position.
+   * Sets the x component of the object's rotation.
    *
-   * @param rad The object's new x coordinate
+   * @param rad The object's new rotation on the x axis.
    */
   setRotationX(rad: number) {
     this.rotation[0] = rad;
   }
 
   /**
-   * Sets the y component of the object's position.
+   * Sets the y component of the object's rotation.
    *
-   * @param rad The object's new y coordinate
+   * @param rad The object's new rotation on the y axis.
    */
   setRotationY(rad: number) {
     this.rotation[1] = rad;
   }
 
   /**
-   * Sets the z component of the object's position.
+   * Sets the z component of the object's rotation.
    *
-   * @param rad The object's new z coordinate
+   * @param rad The object's new rotation on the z axis.
    */
   setRotationZ(rad: number) {
     this.rotation[2] = rad;

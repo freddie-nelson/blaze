@@ -39,6 +39,7 @@ export default class Camera extends Object3D {
   /**
    * Sets the fov of the camera.
    *
+   * @param gl The webgl context to grab canvas dimensions from
    * @param fov FOV angle of the camera in degrees
    */
   setFov(gl: WebGL2RenderingContext, fov: number) {

@@ -5,6 +5,13 @@ import { faces } from "../voxel";
 export interface GeometryGeneratorOptions {
   chunkSize: number;
   chunkHeight: number;
+  excludeList?: Uint8Array;
+}
+
+export interface ChunkGeometry {
+  [index: string]: Uint32Array;
+  indices: Uint32Array;
+  vertices: Uint32Array;
 }
 
 /**
@@ -13,6 +20,7 @@ export interface GeometryGeneratorOptions {
 export default class GeometryGenerator {
   private chunkSize: number;
   private chunkHeight: number;
+  private excludeList: Set<number>;
 
   /**
    * Creates a {@link GeometryGenerator} instance from the provided options.
@@ -22,6 +30,18 @@ export default class GeometryGenerator {
   constructor(opts: GeometryGeneratorOptions) {
     this.chunkSize = opts.chunkSize;
     this.chunkHeight = opts.chunkHeight;
+    this.excludeList = new Set(opts.excludeList);
+  }
+
+  /**
+   * Generates the geometry for a given chunk as JS typed arrays that can be sent to a shader.
+   *
+   * @param chunk The chunk to generate geometry for
+   * @param cNeighbours The front, back, left and right neighbours of the given chunk
+   * @returns The chunk geometry as JS type arrays
+   */
+  generateChunkGeometryGPU(chunk: Uint8Array, cNeighbours: Neighbours<Uint8Array>) {
+    return this.convertGeoToTypedArrs(this.generateChunkGeometry(chunk, cNeighbours));
   }
 
   /**
@@ -30,7 +50,7 @@ export default class GeometryGenerator {
    * @param geo The chunk geometry as normal JS {@link Array}s
    * @returns The chunk geometry as {@link Uint32Array}s that is ready to be sent to the GPU
    */
-  convertGeoToTypedArrs(geo: { indices: number[]; vertices: number[] }) {
+  convertGeoToTypedArrs(geo: { indices: number[]; vertices: number[] }): ChunkGeometry {
     const g = {
       vertices: new Uint32Array(geo.vertices),
       indices: new Uint32Array(geo.indices),
@@ -122,7 +142,7 @@ export default class GeometryGenerator {
     neighbours: Neighbours<number>,
     verticesLength: number
   ) {
-    if (id === 0)
+    if (this.excludeList.has(id))
       return {
         vertices: [],
         indices: [],
@@ -133,7 +153,7 @@ export default class GeometryGenerator {
 
     Object.keys(neighbours).forEach((k) => {
       const n = neighbours[k];
-      if (!n || n === 0) {
+      if (!n || this.excludeList.has(n)) {
         const ndx = verticesLength + vertices.length;
 
         for (let i = 0; i < faces[k].corners.length; i++) {

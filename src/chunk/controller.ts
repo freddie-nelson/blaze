@@ -1,7 +1,6 @@
-import Player from "../player";
 import { createShaderProgram, ShaderProgramInfo } from "../utils/gl";
 import ChunkGenerator from "./generator";
-import GeometryGenerator from "./geometry";
+import GeometryGenerator, { ChunkGeometry } from "./geometry";
 
 import vsChunk from "../shaders/chunk/vertex.glsl";
 import fsChunk from "../shaders/chunk/fragment.glsl";
@@ -11,7 +10,6 @@ import Tilesheet from "../tilesheet";
 import ThreadPool from "../threading/threadPool";
 import Object3D, { Neighbours } from "../object3d";
 import Camera from "../camera";
-import { isObject } from "../utils/objects";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
@@ -30,11 +28,6 @@ export interface Limits {
   iterationsX: number;
   lowerY: number;
   iterationsY: number;
-}
-
-export interface ChunkGeometry {
-  indices: Uint32Array;
-  vertices: Uint32Array;
 }
 
 export type ChunkDrawingMode = 1 | 4; // WebGL2RenderingContext.LINES | WebGL2RenderingContext.TRIANGLES
@@ -99,7 +92,7 @@ export default class ChunkController {
       this.threadPool = threadPool;
       threadPool.everyThread({
         task: "init-geometry-generator",
-        data: new Uint16Array([this.size, this.height]),
+        data: new Uint16Array([this.size, this.height, 0]),
         // cb: () => console.log("init-geometry-generator"),
       });
     }
@@ -138,6 +131,7 @@ export default class ChunkController {
     this.geometryGenerator = new GeometryGenerator({
       chunkSize: this.size,
       chunkHeight: this.height,
+      excludeList: new Uint8Array([0]),
     });
   }
 
