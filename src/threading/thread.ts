@@ -1,4 +1,4 @@
-import { BLZ_Worker, WorkerMessage } from "./worker";
+import { BLZWorker, WorkerMessage } from "./worker";
 
 export type ThreadTaskData =
   | ArrayBuffer
@@ -20,7 +20,7 @@ export interface ThreadTask {
 }
 
 export default class Thread {
-  private worker: BLZ_Worker;
+  private worker: BLZWorker;
   private inUse = false;
   private currentTask: ThreadTask;
   private queue: ThreadTask[] = [];

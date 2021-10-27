@@ -10,6 +10,7 @@ import Tilesheet from "../tilesheet";
 import ThreadPool from "../threading/threadPool";
 import Object3D, { Neighbours } from "../object3d";
 import Camera from "../camera";
+import { System } from "../system";
 
 export interface ChunkControllerOptions {
   gl: WebGL2RenderingContext;
@@ -39,7 +40,7 @@ export type Chunks = { [index: string]: Uint8Array };
  *
  * Also handles multi-threading for geometry generation if created with a {@link ThreadPool} instance.
  */
-export default class ChunkController {
+export default class ChunkController implements System {
   private threadPool: ThreadPool;
   private chunkGenerator: ChunkGenerator;
   private geometryGenerator: GeometryGenerator;
@@ -275,7 +276,6 @@ export default class ChunkController {
         const k = this.chunkKey(pos.x, pos.y);
 
         if (!this.geometry[k] || this.replaceGeometry[k]) {
-          const pos = this.chunkPos(k);
           const neighbours = this.getChunkNeighbours(pos);
           const hasAllNeighbours = neighbours.left && neighbours.right && neighbours.front && neighbours.back;
           if (!hasAllNeighbours) continue;
@@ -302,6 +302,8 @@ export default class ChunkController {
                   }
                 },
               });
+
+              continue;
             } else {
               this.geometry[k] = this.geometryGenerator.convertGeoToTypedArrs(
                 this.geometryGenerator.generateChunkGeometry(this.chunks[k], neighbours)
@@ -651,9 +653,16 @@ export default class ChunkController {
   }
 
   /**
-   * Sets the controller's tilesheet.
+   * Sets the tilesheet to be used on the chunk controller.
    *
-   * @param tilesheet The instance of {@link Tilesheet} to set the controller's tilesheet to
+   * A tilesheet must match the layout: [TOP OF TILE], [SIDES OF TILE], [BOTTOM OF TILE], (repeat)
+   *
+   * For an example of a valid tilesheet [see here](https://raw.githubusercontent.com/freddie-nelson/blaze/master/dev/tilesheet.png)
+   *
+   * @param path A path or url to the tilesheet bitmap image (Supports `.jpg`, `.jpeg`, `.png`)
+   * @param tileSize The width and height of each individual tile in the tilesheet
+   * @param numOfTiles The number of different tiles in the tilesheet
+   * @returns The set {@link Tilesheet} instance
    */
   setTilesheet(tilesheet: Tilesheet) {
     this.tilesheet = tilesheet;

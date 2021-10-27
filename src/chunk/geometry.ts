@@ -77,6 +77,7 @@ export default class GeometryGenerator {
    * @returns The chunk geometry as normal JS {@link Array}s
    */
   generateChunkGeometry(chunk: Uint8Array, cNeighbours: Neighbours<Uint8Array>) {
+    let timer = performance.now();
     const indices: number[] = [];
     const vertices: number[] = [];
 
@@ -100,6 +101,8 @@ export default class GeometryGenerator {
     }
 
     // console.log(vertices[2].toString(2));
+
+    console.log(performance.now() - timer);
 
     return {
       indices,
@@ -151,7 +154,9 @@ export default class GeometryGenerator {
     const indices: number[] = [];
     const vertices: number[] = [];
 
-    Object.keys(neighbours).forEach((k) => {
+    const keys = Object.keys(neighbours);
+
+    for (const k of keys) {
       const n = neighbours[k];
       if (!n || this.excludeList.has(n)) {
         const ndx = verticesLength + vertices.length;
@@ -207,7 +212,7 @@ export default class GeometryGenerator {
         //   console.log(x1, y1, z1);
         // }
       }
-    });
+    }
 
     return {
       vertices,

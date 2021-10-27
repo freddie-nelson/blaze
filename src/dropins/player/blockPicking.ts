@@ -29,6 +29,8 @@ export function createBuildAndBreakHandler(blz: Blaze, opts: BuildAndBreakOption
 
   return (intersections: BlockIntersection[]) => {
     const chunkController = blz.getChunkController();
+    if (!chunkController) return;
+
     const chunks = chunkController.getChunks();
     const size = chunkController.getSize();
     const height = chunkController.getHeight();

@@ -7,8 +7,7 @@ import { glMatrix } from "gl-matrix";
 import Tilesheet from "./tilesheet";
 import Color, { ColorLike } from "./utils/color";
 import ThreadPool from "./threading/threadPool";
-
-export type UpdateHook = (delta?: number) => void;
+import { System } from "./system";
 
 export interface BlazeOptions {
   antialias: boolean;
@@ -27,13 +26,10 @@ export default class Blaze {
   private player: Player;
   private skyColor = new Color("#000");
 
-  private chunkController: ChunkController;
+  private systems: System[] = [];
   private threadPool = new ThreadPool();
 
   private lastUpdateTime = performance.now();
-
-  private afterUpdate: UpdateHook[] = [];
-  private beforeUpdate: UpdateHook[] = [];
 
   /**
    * Initializes the engine and creates the renderer.
@@ -76,61 +72,46 @@ export default class Blaze {
     const delta = (performance.now() - this.lastUpdateTime) / 1000;
     this.lastUpdateTime = performance.now();
 
-    this.beforeUpdate.forEach((h) => h(delta));
-
     clear(this.gl, this.skyColor);
 
     this.player?.update(delta);
-    this.chunkController?.update();
 
-    this.afterUpdate.forEach((h) => h(delta));
+    for (const system of this.systems) {
+      system.update(delta);
+    }
 
     if (this.debug) this.debug.update(delta);
   }
 
   /**
-   * Adds a hook to the update loop which will be called at the start of each update cycle.
+   * Gets the systems running at the top level of the engine.
    *
-   * @param hook The hook to be added to the engine's update hooks
+   * @returns The engine's top level systems
    */
-  addBeforeUpdateListener(hook: UpdateHook) {
-    this.beforeUpdate.push(hook);
+  getSystems() {
+    return this.systems;
   }
 
   /**
-   * Removes a hook from the engine's before update listeners if it exists.
+   * Adds a system to the top level of the engine.
    *
-   * @param hook The hook to remove
-   * @returns True if the hook was remove, otherwise false
+   * @param system The system to add
    */
-  removeBeforeUpdateListener(hook: UpdateHook) {
-    const i = this.beforeUpdate.findIndex((h) => hook === h);
+  addSystem(system: System) {
+    this.systems.push(system);
+  }
+
+  /**
+   * Removes a system from the top level of the engine.
+   *
+   * @param system The system to remove
+   * @returns Wether or not the system was removed
+   */
+  removeSystem(system: System) {
+    const i = this.systems.findIndex((s) => s === system);
     if (i === -1) return false;
 
-    this.beforeUpdate.splice(i, 1);
-    return true;
-  }
-
-  /**
-   * Adds a hook to the update loop which will be called at the end of each update cycle.
-   *
-   * @param hook The hook to be added to the engine's update hooks
-   */
-  addAfterUpdateListener(hook: UpdateHook) {
-    this.afterUpdate.push(hook);
-  }
-
-  /**
-   * Removes a hook from the engine's after update listeners if it exists.
-   *
-   * @param hook The hook to remove
-   * @returns True if the hook was remove, otherwise false
-   */
-  removeAfterUpdateListener(hook: UpdateHook) {
-    const i = this.afterUpdate.findIndex((h) => hook === h);
-    if (i === -1) return false;
-
-    this.afterUpdate.splice(i, 1);
+    this.systems.splice(i, 1);
     return true;
   }
 
@@ -193,69 +174,69 @@ export default class Blaze {
   }
 
   /**
-   * Sets the engine's chunk controller from a {@link ChunkController} instance.
-   *
-   * @param c The {@link ChunkController} instance to set the engine's chunk controller to
-   * @returns The set {@link ChunkController} instance
-   */
-  setChunkController(c: ChunkController): ChunkController;
-
-  /**
-   * Sets the engine's chunk controller from a {@link ChunkControllerOptions} object.
-   *
-   * @param opts The options to use when instantiating the chunk controller
-   * @returns The set {@link ChunkController} instance
-   */
-  setChunkController(opts: ChunkControllerOptions): ChunkController;
-
-  setChunkController(c: ChunkController | ChunkControllerOptions) {
-    if (c instanceof ChunkController) {
-      this.chunkController = c;
-    } else {
-      this.chunkController = new ChunkController(c, this.threadPool);
-    }
-
-    return this.chunkController;
-  }
-
-  /**
    * Gets the engine's current chunk controller.
    *
    * @returns The engine's current chunk controller or undefined
    */
   getChunkController(): ChunkController {
-    return this.chunkController;
+    return <ChunkController>this.systems[this.systems.findIndex((s) => s instanceof ChunkController)];
   }
 
-  /**
-   * Sets the tilesheet to be used on the engine's current chunk controller.
-   *
-   * A tilesheet must match the layout: [TOP OF TILE], [SIDES OF TILE], [BOTTOM OF TILE], (repeat)
-   *
-   * For an example of a valid tilesheet [see here](https://raw.githubusercontent.com/freddie-nelson/blaze/master/dev/tilesheet.png)
-   *
-   * @param path A path or url to the tilesheet bitmap image (Supports `.jpg`, `.jpeg`, `.png`)
-   * @param tileSize The width and height of each individual tile in the tilesheet
-   * @param numOfTiles The number of different tiles in the tilesheet
-   * @returns The set {@link Tilesheet} instance
-   *
-   * @throws If the engine's chunk controller has not been set
-   */
-  setTilesheet(path: string, tileSize: number, numOfTiles: number) {
-    if (!this.chunkController)
-      throw new Error("You must init the chunk controller before setting a tilesheet.");
+  // /**
+  //  * Sets the engine's chunk controller from a {@link ChunkController} instance.
+  //  *
+  //  * @param c The {@link ChunkController} instance to set the engine's chunk controller to
+  //  * @returns The set {@link ChunkController} instance
+  //  */
+  // setChunkController(c: ChunkController): ChunkController;
 
-    this.chunkController.setTilesheet(new Tilesheet(this.gl, path, tileSize, numOfTiles));
-  }
+  // /**
+  //  * Sets the engine's chunk controller from a {@link ChunkControllerOptions} object.
+  //  *
+  //  * @param opts The options to use when instantiating the chunk controller
+  //  * @returns The set {@link ChunkController} instance
+  //  */
+  // setChunkController(opts: ChunkControllerOptions): ChunkController;
 
-  /**
-   * Returns the engine's current tilesheet, if it exists.
-   *
-   * @returns The {@link Tilesheet} instance or undefined
-   */
-  getTilesheet(): Tilesheet {
-    return this.chunkController.getTilesheet();
-  }
+  // setChunkController(c: ChunkController | ChunkControllerOptions) {
+  //   if (c instanceof ChunkController) {
+  //     this.chunkController = c;
+  //   } else {
+  //     this.chunkController = new ChunkController(c, this.threadPool);
+  //   }
+
+  //   return this.chunkController;
+  // }
+
+  // /**
+  //  * Sets the tilesheet to be used on the engine's current chunk controller.
+  //  *
+  //  * A tilesheet must match the layout: [TOP OF TILE], [SIDES OF TILE], [BOTTOM OF TILE], (repeat)
+  //  *
+  //  * For an example of a valid tilesheet [see here](https://raw.githubusercontent.com/freddie-nelson/blaze/master/dev/tilesheet.png)
+  //  *
+  //  * @param path A path or url to the tilesheet bitmap image (Supports `.jpg`, `.jpeg`, `.png`)
+  //  * @param tileSize The width and height of each individual tile in the tilesheet
+  //  * @param numOfTiles The number of different tiles in the tilesheet
+  //  * @returns The set {@link Tilesheet} instance
+  //  *
+  //  * @throws If the engine's chunk controller has not been set
+  //  */
+  // setTilesheet(path: string, tileSize: number, numOfTiles: number) {
+  //   if (!this.chunkController)
+  //     throw new Error("You must init the chunk controller before setting a tilesheet.");
+
+  //   this.chunkController.setTilesheet(new Tilesheet(this.gl, path, tileSize, numOfTiles));
+  // }
+
+  // /**
+  //  * Returns the engine's current tilesheet, if it exists.
+  //  *
+  //  * @returns The {@link Tilesheet} instance or undefined
+  //  */
+  // getTilesheet(): Tilesheet {
+  //   return this.chunkController.getTilesheet();
+  // }
 
   /**
    * Sets the clear color to be used when clearing the webgl buffer, mimics having a sky color.

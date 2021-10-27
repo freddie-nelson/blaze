@@ -1,5 +1,6 @@
-import { vec3 } from "gl-matrix";
 import Blaze from "../lib/src/blaze";
+import ChunkController from "../lib/src/chunk/controller";
+import Tilesheet from "../lib/src/tilesheet";
 import { createBuildAndBreakHandler } from "../lib/src/dropins/player/blockPicking";
 import { createVirtualJoystick } from "../lib/src/dropins/player/controls";
 import { addKeyListener } from "../lib/src/keyboard";
@@ -16,7 +17,7 @@ const player = blz.setPlayer({
 player.getCamera().setFov(blz.gl, 90);
 
 // setup chunk controller
-const chunkController = blz.setChunkController({
+const chunkController = new ChunkController({
   gl: blz.gl,
   object: player,
   camera: player.getCamera(),
@@ -27,6 +28,8 @@ const chunkController = blz.setChunkController({
   chunkSize: 8,
   chunkHeight: 127,
 });
+chunkController.setTilesheet(new Tilesheet(blz.gl, "tilesheet.png", 16, 22));
+blz.addSystem(chunkController);
 
 const generator = chunkController.getChunkGenerator();
 generator.addGenerator((chunk, pos) => {
@@ -64,7 +67,6 @@ addKeyListener("KeyC", (pressed) => {
   }
 });
 
-blz.setTilesheet("tilesheet.png", 16, 22);
 blz.setSkyColor("skyblue");
 
 blz.toggleDebug();

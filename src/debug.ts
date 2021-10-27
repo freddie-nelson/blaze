@@ -28,7 +28,6 @@ export default class Debug {
 
   constructor(blz: Blaze) {
     this.blz = blz;
-    const chunkController = blz.getChunkController();
 
     const container = document.createElement("div");
     container.setAttribute(
@@ -49,11 +48,11 @@ export default class Debug {
 
     this.lineMode = this.createToggle("Draw Lines: ", (val) => {
       val
-        ? chunkController.setDrawMode(WebGL2RenderingContext.LINES)
-        : chunkController.setDrawMode(WebGL2RenderingContext.TRIANGLES);
+        ? blz.getChunkController().setDrawMode(WebGL2RenderingContext.LINES)
+        : blz.getChunkController().setDrawMode(WebGL2RenderingContext.TRIANGLES);
     });
     this.reloadChunks = this.createButton("Reload Chunks", () => {
-      chunkController.refreshAllChunks();
+      blz.getChunkController().refreshAllChunks();
     });
     this.reloadChunks.id = "reload-btn";
 
@@ -106,6 +105,8 @@ export default class Debug {
     const player = this.blz.getPlayer();
     const position = player.getPosition();
     const chunkController = this.blz.getChunkController();
+    if (!chunkController) return;
+
     const chunk = chunkController.getChunk(position);
     chunk.x -= chunkController.getChunkOffset();
     chunk.y -= chunkController.getChunkOffset();

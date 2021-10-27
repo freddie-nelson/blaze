@@ -12,12 +12,12 @@ export interface WorkerMessage {
   data?: ThreadTaskData | ThreadTaskData[] | ThreadTaskDataObject;
 }
 
-export interface BLZ_Worker extends Worker {
+export interface BLZWorker extends Worker {
   postMessage: (data: WorkerMessage) => void;
   onmessage: (e: { data: WorkerMessage }) => void;
 }
 
-const ctx: BLZ_Worker = <any>self;
+const ctx: BLZWorker = <any>self;
 
 class BlazeWorker {
   geometryGenerator: GeometryGenerator;
